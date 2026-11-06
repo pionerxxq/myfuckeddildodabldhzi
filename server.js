@@ -31,7 +31,7 @@ function schema(dialect) {
       username ${vc(64)} NOT NULL UNIQUE,
       username_lower ${vc(64)} NOT NULL UNIQUE,
       password_hash ${vc(255)} NOT NULL,
-      role ${vc(16)} NOT NULL DEFAULT 'user',
+      role ${vc(16)} NOT NULL DEFAULT 'player',
       sub_expires_at ${big} NOT NULL DEFAULT 0,
       hwid_resets INT NOT NULL DEFAULT 0,
       created_at ${big} NOT NULL
@@ -60,9 +60,9 @@ async function initDb() {
   if (!exists) {
     await db.run(
       'INSERT INTO users (username, username_lower, password_hash, role, sub_expires_at, hwid_resets, created_at) VALUES (?,?,?,?,?,?,?)',
-      [ADMIN_USERNAME, ADMIN_USERNAME.toLowerCase(), bcrypt.hashSync(ADMIN_PASSWORD, 10), 'admin', 0, 0, now()]
+      [ADMIN_USERNAME, ADMIN_USERNAME.toLowerCase(), bcrypt.hashSync(ADMIN_PASSWORD, 10), 'owner', 0, 0, now()]
     );
-    console.log(`[seed] Создан администратор: ${ADMIN_USERNAME}`);
+    console.log(`[seed] Создан владелец: ${ADMIN_USERNAME}`);
   }
 }
 
@@ -100,7 +100,7 @@ async function auth(req, res, next) {
 }
 
 const adminOnly = (req, res, next) =>
-  req.user.role !== 'admin' ? res.status(403).json({ error: 'Только для администратора' }) : next();
+  (req.user.role !== 'owner' && req.user.role !== 'admin') ? res.status(403).json({ error: 'Доступ только для персонала' }) : next();
 
 async function createSession(uid) {
   const token = crypto.randomBytes(32).toString('hex');
@@ -132,7 +132,7 @@ app.post('/api/register', wrap(async (req, res) => {
 
   const r = await db.run(
     'INSERT INTO users (username, username_lower, password_hash, role, sub_expires_at, hwid_resets, created_at) VALUES (?,?,?,?,?,?,?)',
-    [uname, lower, bcrypt.hashSync(password, 10), 'user', 0, 0, now()]
+    [uname, lower, bcrypt.hashSync(password, 10), 'player', 0, 0, now()]
   );
   const user = await db.get('SELECT * FROM users WHERE uid = ?', [r.lastInsertRowid]);
   const token = await createSession(user.uid);
@@ -168,7 +168,6 @@ app.post('/api/redeem', auth, wrap(async (req, res) => {
   const row = await db.get('SELECT * FROM sub_keys WHERE key_code = ? AND used_by IS NULL', [key]);
   if (!row) return res.status(404).json({ error: 'Ключ не найден или уже использован' });
 
-  // Атомарно "забираем" ключ, чтобы его нельзя было применить дважды
   const lock = await db.run(
     'UPDATE sub_keys SET used_by = ?, used_at = ? WHERE id = ? AND used_by IS NULL',
     [req.user.uid, now(), row.id]
@@ -179,7 +178,7 @@ app.post('/api/redeem', auth, wrap(async (req, res) => {
   const newExp = base + Number(row.days) * DAY;
 
   await db.run('UPDATE users SET sub_expires_at = ? WHERE uid = ?', [newExp, req.user.uid]);
-  await db.run('DELETE FROM sub_keys WHERE id = ?', [row.id]); // использованный ключ удаляется
+  await db.run('DELETE FROM sub_keys WHERE id = ?', [row.id]);
 
   const updated = await db.get('SELECT * FROM users WHERE uid = ?', [req.user.uid]);
   res.json({ user: publicUser(updated), addedDays: Number(row.days) });
@@ -209,7 +208,16 @@ app.post('/api/admin/users/:uid/sub', auth, adminOnly, wrap(async (req, res) => 
 
 app.post('/api/admin/users/:uid/role', auth, adminOnly, wrap(async (req, res) => {
   const uid = parseInt(req.params.uid, 10);
-  const role = req.body?.role === 'admin' ? 'admin' : 'user';
+  const allowedRoles = ['player', 'user', 'media', 'owner'];
+  const role = req.body?.role;
+
+  if (!allowedRoles.includes(role)) return res.status(400).json({ error: 'Некорректная роль' });
+  
+  // Запрещаем понижать самого себя
+  if (uid === req.user.uid && role !== 'owner') {
+    return res.status(400).json({ error: 'Вы не можете понизить свою роль' });
+  }
+
   await db.run('UPDATE users SET role = ? WHERE uid = ?', [role, uid]);
   res.json({ ok: true });
 }));
@@ -218,7 +226,8 @@ app.delete('/api/admin/users/:uid', auth, adminOnly, wrap(async (req, res) => {
   const uid = parseInt(req.params.uid, 10);
   const u = await db.get('SELECT * FROM users WHERE uid = ?', [uid]);
   if (!u) return res.status(404).json({ error: 'Не найден' });
-  if (u.role === 'admin') return res.status(400).json({ error: 'Нельзя удалить администратора' });
+  if (u.role === 'owner') return res.status(400).json({ error: 'Нельзя удалить владельца' });
+  
   await db.run('DELETE FROM sessions WHERE uid = ?', [uid]);
   await db.run('DELETE FROM users WHERE uid = ?', [uid]);
   res.json({ ok: true });
