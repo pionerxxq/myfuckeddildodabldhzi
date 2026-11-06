@@ -42,11 +42,8 @@
   h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 24px; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); }
   .gradient-text { background: linear-gradient(90deg, #7dd3fc 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .hero-desc { font-size: 15px; color: #d1d5db; max-width: 580px; line-height: 1.6; margin-bottom: 40px; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); }
-  .hero-buttons { display: flex; gap: 16px; }
   .btn-primary { display: inline-flex; align-items: center; gap: 10px; background: var(--accent); color: #000; text-decoration: none; font-size: 14px; font-weight: 700; padding: 14px 32px; border-radius: 999px; transition: all 0.2s; border: none; cursor: pointer; }
   .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
-  .btn-secondary { display: inline-flex; align-items: center; gap: 10px; background: transparent; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 700; padding: 14px 32px; border-radius: 999px; transition: all 0.2s; border: 1px solid var(--border); cursor: pointer; }
-  .btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
 
   .pricing-section { position: relative; z-index: 10; padding: 60px 20px 100px; max-width: 1100px; margin: 0 auto; width: 100%; }
   .pricing-title { text-align: center; font-size: 28px; margin-bottom: 40px; font-weight: 700; }
@@ -165,9 +162,6 @@
         <a class="nav-link" onclick="goToProducts()">Продукты</a>
       </div>
       <div class="nav-right">
-        <!-- Кнопка скачивания в шапке -->
-        <a class="btn-nav" style="text-decoration: none; display: flex; align-items: center;" href="https://www.dropbox.com/scl/fi/tp5gojs0l0m8gnbffu2q6/launcher.exe?rlkey=obbdpdhmaaywvo8k2s308t5jx&amp;dl=1" target="_blank">Скачать</a>
-        
         <button class="btn-nav primary" id="header-btn-login" onclick="switchPage('auth')">Войти</button>
         <button class="btn-nav" id="header-btn-dash" style="display:none;" onclick="switchPage('dashboard')">Личный кабинет</button>
         <button class="btn-nav btn-admin" id="header-btn-admin" style="display:none;" onclick="switchPage('admin')">Admin Panel</button>
@@ -182,10 +176,7 @@
       <div class="top-badge">Мы лучший клиент среди всех!</div>
       <h1>Это твоя игра, твоя победа.<br>Играй с <span class="gradient-text">Garmonia</span></h1>
       <p class="hero-desc">Garmonia — это не просто еще один клиент, это полное переосмысление игры в Minecraft.</p>
-      <div class="hero-buttons">
-        <button class="btn-primary" onclick="goToProducts()">Купить</button>
-        <a class="btn-secondary" href="https://www.dropbox.com/scl/fi/tp5gojs0l0m8gnbffu2q6/launcher.exe?rlkey=obbdpdhmaaywvo8k2s308t5jx&amp;dl=1" target="_blank">Скачать лаунчер</a>
-      </div>
+      <button class="btn-primary" onclick="goToProducts()">Купить</button>
     </main>
     <section id="pricing" class="pricing-section">
       <h2 class="pricing-title">Выбери свой тариф</h2>
@@ -239,8 +230,8 @@
         </div>
         <div class="action-buttons">
           <button class="btn-action primary" onclick="goToProducts()">Купить подписку</button>
-          <!-- Рабочая ссылка на скачивание в кабинете -->
-          <a class="btn-action secondary" href="https://www.dropbox.com/scl/fi/tp5gojs0l0m8gnbffu2q6/launcher.exe?rlkey=obbdpdhmaaywvo8k2s308t5jx&amp;dl=1" target="_blank">Скачать лаунчер</a>
+          <!-- Кнопка скачивания, изначально скрыта -->
+          <a id="download-btn" class="btn-action secondary" style="display: none;" href="https://www.dropbox.com/scl/fi/tp5gojs0l0m8gnbffu2q6/launcher.exe?rlkey=obbdpdhmaaywvo8k2s308t5jx&amp;dl=1" target="_blank">Скачать лаунчер</a>
         </div>
         <div class="dash-main-header" style="margin-top: 8px;"><h2>Активация ключа</h2></div>
         <div class="form-row" style="margin-top: 16px;">
@@ -447,6 +438,14 @@ function renderDashboard() {
   document.getElementById('dash-info-sub').innerText = s.text;
   document.getElementById('dash-info-sub').style.color = s.color;
   document.getElementById('dash-avatar').style.backgroundImage = `url('https://mc-heads.net/avatar/${encodeURIComponent(u.username)}/64')`;
+
+  // ПОКАЗЫВАЕМ КНОПКУ СКАЧИВАНИЯ ТОЛЬКО ЕСЛИ ЕСТЬ АКТИВНАЯ ПОДПИСКА
+  const dlBtn = document.getElementById('download-btn');
+  if (u.subActive) {
+    dlBtn.style.display = 'flex';
+  } else {
+    dlBtn.style.display = 'none';
+  }
 }
 
 async function resetHwid() {
