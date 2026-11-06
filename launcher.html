@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Garmonia Launcher</title>
+<style>
+  body {
+    margin: 0; padding: 0; height: 100vh; background: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/56/Three_biomes_concept_art.jpg/revision/latest?cb=20211024124434') center/cover no-repeat;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center;
+    color: white; overflow: hidden; user-select: none;
+  }
+  .overlay { position: absolute; inset: 0; background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(8px); z-index: 1; }
+  .launcher-box {
+    position: relative; z-index: 2; width: 900px; height: 550px; background: #111; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; display: flex; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;
+  }
+  .login-panel { width: 350px; padding: 40px; background: #0a0a0a; display: flex; flex-direction: column; justify-content: center; }
+  .logo { font-size: 32px; font-weight: 900; color: #38bdf8; margin-bottom: 30px; text-align: center; letter-spacing: 2px; }
+  .form-group { margin-bottom: 15px; }
+  input {
+    width: 100%; box-sizing: border-box; padding: 14px; background: #161616; border: 1px solid #333;
+    border-radius: 10px; color: white; font-size: 14px; outline: none; transition: 0.3s;
+  }
+  input:focus { border-color: #38bdf8; }
+  .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; }
+  .btn-login { background: #38bdf8; color: #000; margin-top: 10px; }
+  .btn-login:hover { background: #0ea5e9; }
+  .error { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+
+  .main-panel { flex: 1; padding: 40px; display: flex; flex-direction: column; position: relative; }
+  .news-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; color: #fff; }
+  .news-box { flex: 1; background: #161616; border: 1px solid #222; border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #aaa; line-height: 1.6; }
+  
+  .bottom-area { margin-top: 30px; display: flex; flex-direction: column; align-items: center; }
+  .progress-container { width: 100%; height: 6px; background: #222; border-radius: 3px; margin-bottom: 20px; overflow: hidden; display: none; }
+  .progress-bar { height: 100%; width: 0%; background: #38bdf8; transition: width 0.3s; }
+  .btn-play {
+    background: #22c55e; color: #000; font-size: 18px; padding: 16px 60px; border-radius: 12px;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); display: none;
+  }
+  .btn-play:hover { background: #16a34a; }
+  .status-text { font-size: 13px; color: #888; margin-top: 10px; }
+
+  .spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #38bdf8; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="launcher-box">
+    
+    <div class="login-panel" id="login-panel">
+      <div class="logo">GARMONIA</div>
+      <div class="form-group"><input type="text" id="username" placeholder="Логин"></div>
+      <div class="form-group"><input type="password" id="password" placeholder="Пароль"></div>
+      <button class="btn btn-login" id="login-btn" onclick="login()">Войти</button>
+      <div class="spinner" id="login-spinner"></div>
+      <div class="error" id="login-error"></div>
+    </div>
+
+    <div class="main-panel" id="main-panel" style="display: none;">
+      <div class="news-title">Добро пожаловать, <span id="user-name" style="color:#38bdf8"></span>!</div>
+      <div class="news-box">
+        <b style="color:#fff;">Обновление 1.0.4</b><br>
+        - Улучшена производительность.<br>
+        - Исправлены баги с рендером.<br>
+        - Добавлены новые функции.<br><br>
+        <i style="color:#888;">Нажмите "Играть", чтобы начать.</i>
+      </div>
+      
+      <div class="bottom-area">
+        <div class="progress-container" id="progress-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
+        <div class="status-text" id="status-text">Готов к запуску</div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+let myHwid = "UNKNOWN";
+
+// Функция запроса HWID у программы C# (если она запущена)
+function getHwidFromLauncher() {
+  if (window.chrome && window.chrome.webview) {
+    window.chrome.webview.postMessage("GET_HWID");
+  }
+}
+
+// Слушаем ответ от C# (он пришлет реальный HWID)
+if (window.chrome && window.chrome.webview) {
+  window.chrome.webview.addEventListener('message', event => {
+    if (event.data.startsWith("HWID:")) {
+      myHwid = event.data.split(":")[1];
+    }
+  });
+  getHwidFromLauncher();
+}
+
+async function login() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  const err = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  const spinner = document.getElementById('login-spinner');
+
+  if (!u || !p) {
+    err.innerText = "Введите логин и пароль"; err.style.display = 'block'; return;
+  }
+
+  btn.style.display = 'none'; spinner.style.display = 'block'; err.style.display = 'none';
+
+  try {
+    // Если HWID не получен от C#, используем заглушку (для тестов в браузере)
+    const hwidToSend = myHwid === "UNKNOWN" ? "TEST_HWID_BROWSER" : myHwid;
+
+    const res = await fetch('/api/client/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p, hwid: hwidToSend })
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error);
+
+    document.getElementById('login-panel').style.display = 'none';
+    document.getElementById('main-panel').style.display = 'flex';
+    document.getElementById('user-name').innerText = u;
+
+  } catch (e) {
+    err.innerText = e.message; err.style.display = 'block';
+    btn.style.display = 'block'; spinner.style.display = 'none';
+  }
+}
+
+function playGame() {
+  const btn = document.getElementById('play-btn');
+  const bar = document.getElementById('progress-bar');
+  const container = document.getElementById('progress-container');
+  const status = document.getElementById('status-text');
+
+  btn.style.display = 'none';
+  container.style.display = 'block';
+  status.innerText = 'Проверка файлов...';
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 15) + 5;
+    if (progress > 100) progress = 100;
+    bar.style.width = progress + '%';
+
+    if (progress >= 100) {
+      clearInterval(interval);
+      status.innerText = 'Запуск клиента...';
+      
+      // ОТПРАВЛЯЕМ КОМАНДУ В C#
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage("START_MINECRAFT");
+      } else {
+        alert("Играть можно только через GarmoniaLauncher.exe!");
+      }
+    }
+  }, 200);
+}
+</script>
+</body>
+</html>
