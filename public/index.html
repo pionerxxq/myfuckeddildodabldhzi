@@ -12,7 +12,7 @@
     --accent-transparent: rgba(56, 189, 248, 0.15); --border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(22, 24, 29, 0.85); --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     
-    /* Новые цвета для админки (как на фото) */
+    /* Новые цвета для админки */
     --admin-bg: #0a0a0c;
     --admin-sidebar: #111114;
     --admin-card: #16161a;
@@ -26,7 +26,11 @@
   /* --- ГЛАВНЫЙ ХЕДЕР САЙТА --- */
   .global-header { position: fixed; top: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; padding: 0 20px; pointer-events: none; }
   .navbar { display: flex; align-items: center; justify-content: space-between; background: var(--nav-bg); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 999px; padding: 8px 10px 8px 24px; width: 100%; max-width: 1000px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); pointer-events: auto; }
-  .logo { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--accent); border-radius: 8px; color: #000; font-weight: 900; font-size: 18px; text-decoration: none; cursor: pointer; }
+  
+  /* Измененный логотип в шапке */
+  .logo { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; text-decoration: none; cursor: pointer; }
+  .logo svg { width: 100%; height: 100%; }
+
   .nav-links { display: flex; gap: 20px; margin-left: 24px; }
   .nav-link { display: flex; align-items: center; gap: 6px; color: var(--text-sub); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s; cursor: pointer; }
   .nav-link:hover { color: var(--text-main); }
@@ -125,7 +129,7 @@
   .action-btn.danger:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; }
 
   /* ======================================================== */
-  /* ==================== АДМИНКА (НОВЫЙ СТИЛЬ) ============= */
+  /* ==================== АДМИНКА =========================== */
   /* ======================================================== */
   #page-admin { display: none; background-color: var(--admin-bg); min-height: calc(100vh - 90px); }
   #page-admin.active { display: flex; }
@@ -159,48 +163,18 @@
   .admin-page-title { font-size: 24px; font-weight: 700; color: #fff; }
   .admin-page-subtitle { font-size: 13px; color: #888; margin-top: 4px; }
 
-  /* Переключатель Стабильная/Бета */
-  .toggle-tabs { display: flex; background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 10px; padding: 4px; margin-bottom: 25px; max-width: 600px; }
-  .toggle-tab { flex: 1; text-align: center; padding: 12px; font-size: 14px; font-weight: 600; color: #888; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-  .toggle-tab.active { background: var(--admin-blue); color: #fff; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
-
-  /* Зона загрузки (Drag & Drop) */
-  .drop-zone { 
-    border: 2px dashed var(--admin-border); border-radius: 12px; padding: 30px; 
-    display: flex; align-items: center; gap: 20px; cursor: pointer; transition: 0.2s; margin-bottom: 20px;
-    background: rgba(255,255,255,0.01); max-width: 600px;
-  }
-  .drop-zone:hover, .drop-zone.dragover { border-color: var(--admin-blue); background: rgba(59, 130, 246, 0.05); }
-  .drop-icon { width: 50px; height: 50px; background: #1a1a24; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-  .drop-icon svg { width: 24px; height: 24px; stroke: var(--admin-blue); }
-  .drop-text { font-size: 14px; color: #ccc; }
-  .drop-text b { color: #fff; }
-  .drop-text span { color: var(--admin-blue); font-weight: 600; }
-
-  /* Кнопки загрузки */
-  .btn-upload { 
-    width: 100%; max-width: 600px; background: var(--admin-blue); color: #fff; border: none; 
-    padding: 14px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;
-  }
-  .btn-upload:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-upload:hover:not(:disabled) { background: var(--admin-blue-hover); }
-  
-  .btn-outline { 
-    width: 100%; max-width: 600px; background: transparent; color: #ccc; border: 1px solid var(--admin-border); 
-    padding: 14px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-  }
-  .btn-outline:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  /* Формы и кнопки */
+  .admin-form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
+  .admin-form-row .form-group { flex: 1; min-width: 140px; margin-bottom: 0; }
+  .admin-form-row .form-control { background: #111; border: 1px solid var(--admin-border); }
+  .btn-upload { width: 100%; background: var(--admin-blue); color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .btn-upload:hover { background: var(--admin-blue-hover); }
 
   /* Список модов */
   .mods-section { margin-top: 40px; max-width: 800px; }
   .mods-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 15px; }
   .mods-list { display: flex; flex-direction: column; gap: 10px; }
-  .mod-item { 
-    display: flex; align-items: center; gap: 15px; background: var(--admin-card); 
-    border: 1px solid var(--admin-border); border-radius: 10px; padding: 15px 20px; transition: 0.2s;
-  }
+  .mod-item { display: flex; align-items: center; gap: 15px; background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 10px; padding: 15px 20px; transition: 0.2s; }
   .mod-item:hover { border-color: #444; }
   .mod-icon svg { width: 20px; height: 20px; stroke: var(--admin-blue); }
   .mod-name { flex: 1; font-size: 14px; color: #eee; font-family: monospace; }
@@ -208,7 +182,7 @@
   .mod-delete:hover { color: #ef4444; }
   .mod-delete svg { width: 18px; height: 18px; stroke: currentColor; }
 
-  /* Общие стили для таблиц и форм в админке (Панель и т.д.) */
+  /* Таблицы (Пользователи, Ключи, Промокоды) */
   .admin-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
   .stat-card { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; }
   .stat-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; }
@@ -229,9 +203,6 @@
   .admin-table th { color: #888; font-size: 13px; font-weight: 500; }
   .admin-table td { font-size: 14px; color: #ddd; }
   .admin-table tr:hover td { background: rgba(255,255,255,0.02); }
-  .admin-form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
-  .admin-form-row .form-group { flex: 1; min-width: 140px; margin-bottom: 0; }
-  .admin-form-row .form-control { background: #111; border: 1px solid var(--admin-border); }
   .key-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
   .key-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 10px; padding: 12px 16px; font-size: 13px; flex-wrap: wrap; }
   .badge { font-size: 11px; color: var(--admin-blue); background: rgba(59, 130, 246, 0.1); padding: 3px 8px; border-radius: 6px; margin-left: 8px; }
@@ -264,7 +235,7 @@
     .admin-nav-item { white-space: nowrap; }
     .admin-main { padding: 20px; }
     .admin-stats-grid { grid-template-columns: 1fr; }
-    .toggle-tabs, .drop-zone, .btn-upload, .btn-outline, .mods-section { max-width: 100%; }
+    .mods-section { max-width: 100%; }
   }
   @media (max-width: 768px) {
     .nav-links { display: none; }
@@ -280,7 +251,19 @@
 
   <div class="global-header">
     <nav class="navbar">
-      <a class="logo" onclick="switchPage('landing')">G</a>
+      <!-- НОВЫЙ ЛОГОТИП В ШАПКЕ -->
+      <a class="logo" onclick="switchPage('landing')">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gGradHeader" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#38bdf8" />
+              <stop offset="100%" stop-color="#8b5cf6" />
+            </linearGradient>
+          </defs>
+          <path d="M50 15 C25 15 10 30 10 50 C10 75 25 85 50 85 C75 85 90 75 90 50 L90 45 L50 45 L50 60 L70 60 C65 70 55 70 50 70 C35 70 25 65 25 50 C25 35 35 30 50 30 C60 30 65 35 70 40 L82 30 C75 20 65 15 50 15 Z" fill="url(#gGradHeader)"/>
+        </svg>
+      </a>
+      
       <div class="nav-links">
         <a class="nav-link" onclick="goToProducts()">Продукты</a>
       </div>
@@ -428,14 +411,13 @@
     </div>
   </div>
 
-  <!-- АДМИН ПАНЕЛЬ (НОВЫЙ ДИЗАЙН) -->
+  <!-- АДМИН ПАНЕЛЬ -->
   <div id="page-admin" class="page">
     <div class="admin-layout">
       
       <!-- САЙДБАР -->
       <aside class="admin-sidebar">
         <div class="admin-logo">
-          <!-- КРАСИВЫЙ SVG ЛОГОТИП G -->
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="gGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -445,7 +427,7 @@
             </defs>
             <path d="M50 15 C25 15 10 30 10 50 C10 75 25 85 50 85 C75 85 90 75 90 50 L90 45 L50 45 L50 60 L70 60 C65 70 55 70 50 70 C35 70 25 65 25 50 C25 35 35 30 50 30 C60 30 65 35 70 40 L82 30 C75 20 65 15 50 15 Z" fill="url(#gGrad)"/>
           </svg>
-          SkyCore <span class="admin-badge">АДМИН</span>
+          Garmonia <span class="admin-badge">АДМИН</span> <!-- ИСПРАВЛЕНО ТУТ -->
         </div>
         
         <div class="lang-switch">
@@ -499,10 +481,7 @@
         <div id="admin-view-dashboard" class="admin-view">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
-            <div>
-              <div class="admin-page-title">Панель</div>
-              <div class="admin-page-subtitle">Обзор вашего сервиса с первого взгляда</div>
-            </div>
+            <div><div class="admin-page-title">Панель</div><div class="admin-page-subtitle">Обзор вашего сервиса с первого взгляда</div></div>
           </div>
 
           <div class="admin-stats-grid">
@@ -578,62 +557,43 @@
           <div id="promo-list" class="key-list"></div>
         </div>
 
-        <!-- Вкладка: Загрузка (НОВАЯ) -->
+        <!-- Вкладка: Загрузка -->
         <div id="admin-view-uploads" class="admin-view" style="display: none;">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-            <div><div class="admin-page-title">Загрузка</div><div class="admin-page-subtitle">Загрузка клиентского .jar на сервер</div></div>
+            <div><div class="admin-page-title">Загрузка клиента</div><div class="admin-page-subtitle">Ссылка на скачивание основного .jar файла</div></div>
           </div>
 
-          <div class="toggle-tabs">
-            <div class="toggle-tab active">Стабильная</div>
-            <div class="toggle-tab">Бета</div>
+          <div class="admin-form-row" style="max-width: 600px;">
+            <div class="form-group" style="flex: 1;">
+              <label style="color:#888; font-size:12px; margin-bottom:8px; display:block;">Прямая ссылка на клиент (.jar)</label>
+              <input id="mod-url" class="form-control" placeholder="https://example.com/client.jar">
+            </div>
+            <button class="btn-upload" style="width: auto; margin-bottom: 0;" onclick="saveModUrl()">Сохранить</button>
           </div>
-
-          <div class="drop-zone" id="client-drop-zone">
-            <div class="drop-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-            <div class="drop-text" id="client-drop-text">Выберите <b>.jar</b> файл или перетащите сюда</div>
-            <input type="file" id="client-file-input" accept=".jar" style="display: none;" onchange="handleFileSelect(event, 'client')">
-          </div>
-
-          <button class="btn-upload" id="upload-client-btn" disabled>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Загрузить на сервер
-          </button>
-
-          <button class="btn-outline">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-            Перезалить клиент
-          </button>
+          <div id="settings-msg" class="msg" style="max-width: 600px;"></div>
         </div>
 
-        <!-- Вкладка: Моды (НОВАЯ) -->
+        <!-- Вкладка: Моды -->
         <div id="admin-view-mods" class="admin-view" style="display: none;">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
-            <div><div class="admin-page-title">Моды</div><div class="admin-page-subtitle">Залив и управление модами клиента</div></div>
+            <div><div class="admin-page-title">Моды клиента</div><div class="admin-page-subtitle">Лаунчер автоматически скачает эти моды в папку mods</div></div>
           </div>
 
-          <div class="toggle-tabs">
-            <div class="toggle-tab active">Стабильная</div>
-            <div class="toggle-tab">Бета</div>
+          <div class="admin-form-row" style="max-width: 600px;">
+            <div class="form-group" style="flex: 1;">
+              <label style="color:#888; font-size:12px; margin-bottom:8px; display:block;">Прямая ссылка на мод (.jar)</label>
+              <input id="new-mod-url" class="form-control" placeholder="https://example.com/mod.jar">
+            </div>
+            <button class="btn-upload" style="width: auto; margin-bottom: 0;" onclick="addMod()">Добавить</button>
           </div>
-
-          <div class="drop-zone" id="mod-drop-zone">
-            <div class="drop-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
-            <div class="drop-text" id="mod-drop-text">Выберите мод <b>.jar</b> в формате или перетащите сюда</div>
-            <input type="file" id="mod-file-input" accept=".jar" style="display: none;" onchange="handleFileSelect(event, 'mod')">
-          </div>
-
-          <button class="btn-upload" id="upload-mod-btn" disabled>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Залить мод
-          </button>
+          <div id="mod-msg" class="msg" style="max-width: 600px;"></div>
 
           <div class="mods-section">
-            <div class="mods-title">Установленные моды (5)</div>
+            <div class="mods-title">Установленные моды</div>
             <div class="mods-list" id="mods-list-container">
-              <!-- Список модов будет рендериться тут -->
+              <!-- Список будет рендериться из БД -->
             </div>
           </div>
         </div>
@@ -674,15 +634,6 @@ const roleColors = { owner: '#ef4444', admin: '#ef4444', media: '#a855f7', user:
 
 const state = { token: localStorage.getItem('garmonia_token') || null, user: null };
 let currentBuyItem = null;
-
-// Моковые данные для списка модов (пока нет бэкенда)
-let installedMods = [
-  "fabric-api-0.119.4-1.21.4.jar",
-  "fabric-language-kotlin-1.13.8-kotlin.2.3.0.jar",
-  "IAS-Fabric-1.21.4-9.0.4.jar",
-  "sodium-fabric-0.6.13-mc1.21.4.jar",
-  "ViaFabricPlus-4.0.5-BACKPORT.jar"
-];
 
 async function api(path, opts = {}) {
   const headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
@@ -817,7 +768,7 @@ function switchAdminTab(tab) {
   const targetView = document.getElementById('admin-view-' + tab);
   if (targetView) targetView.style.display = 'block';
 
-  if (tab === 'mods') renderModsList();
+  if (tab === 'mods') loadMods();
 }
 
 async function loadAdmin() {
@@ -918,70 +869,66 @@ async function deletePromo(id) {
   try { await api('/admin/promos/' + id, { method: 'DELETE' }); await loadAdmin(); } catch (e) { alert(e.message); }
 }
 
-/* --- ЛОГИКА ЗАГРУЗКИ ФАЙЛОВ (Имитация) --- */
-function handleFileSelect(event, type) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  if (!file.name.endsWith('.jar')) {
-    showToast('Пожалуйста, выберите файл .jar', true);
-    return;
-  }
-
-  if (type === 'client') {
-    document.getElementById('client-drop-text').innerHTML = `Выбран файл: <b>${file.name}</b>`;
-    document.getElementById('upload-client-btn').disabled = false;
-  } else if (type === 'mod') {
-    document.getElementById('mod-drop-text').innerHTML = `Выбран файл: <b>${file.name}</b>`;
-    document.getElementById('upload-mod-btn').disabled = false;
-  }
-}
-
-// Drag & Drop логика
-['client', 'mod'].forEach(type => {
-  const zone = document.getElementById(`${type}-drop-zone`);
-  const input = document.getElementById(`${type}-file-input`);
-  
-  zone.addEventListener('click', () => input.click());
-  
-  zone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    zone.classList.add('dragover');
-  });
-  
-  zone.addEventListener('dragleave', () => {
-    zone.classList.remove('dragover');
-  });
-  
-  zone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    zone.classList.remove('dragover');
-    if (e.dataTransfer.files.length) {
-      input.files = e.dataTransfer.files;
-      handleFileSelect({ target: input }, type);
+/* --- ЛОГИКА МОДОВ --- */
+async function loadMods() {
+  try {
+    const mods = await api('/admin/mods');
+    const container = document.getElementById('mods-list-container');
+    
+    if (mods.length === 0) {
+      container.innerHTML = '<p style="color:#888; font-size:13px;">Список модов пуст.</p>';
+      return;
     }
-  });
-});
 
-// Рендер списка модов
-function renderModsList() {
-  const container = document.getElementById('mods-list-container');
-  container.innerHTML = installedMods.map((mod, index) => `
-    <div class="mod-item">
-      <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
-      <div class="mod-name">${mod}</div>
-      <button class="mod-delete" onclick="deleteMod(${index})"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-    </div>
-  `).join('');
+    container.innerHTML = mods.map(mod => `
+      <div class="mod-item">
+        <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+        <div class="mod-name">${mod.mod_name}</div>
+        <button class="mod-delete" onclick="deleteMod(${mod.id})"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+    `).join('');
+  } catch (e) { showToast(e.message, true); }
 }
 
-function deleteMod(index) {
-  if (confirm('Удалить мод?')) {
-    installedMods.splice(index, 1);
-    document.querySelector('.mods-title').innerText = `Установленные моды (${installedMods.length})`;
-    renderModsList();
-    showToast('Мод удалён');
-  }
+async function addMod() {
+  const msg = document.getElementById('mod-msg'); hideMsg(msg);
+  const url = document.getElementById('new-mod-url').value.trim();
+  if (!url) { showMsg(msg, 'Введите ссылку', 'err'); return; }
+  
+  let fileName = "mod.jar";
+  try { fileName = url.split('/').pop().split('?')[0]; } catch(e) {}
+  
+  try {
+    await api('/admin/mods', { method: 'POST', body: JSON.stringify({ name: fileName, url }) });
+    showMsg(msg, 'Мод добавлен', 'ok');
+    document.getElementById('new-mod-url').value = '';
+    loadMods();
+  } catch (e) { showMsg(msg, e.message); }
+}
+
+async function deleteMod(id) {
+  if (!confirm('Удалить мод?')) return;
+  try {
+    await api('/admin/mods/' + id, { method: 'DELETE' });
+    loadMods();
+    showToast('Мод удален');
+  } catch (e) { alert(e.message); }
+}
+
+async function saveModUrl() {
+  const msg = document.getElementById('settings-msg'); hideMsg(msg);
+  const url = document.getElementById('mod-url').value.trim();
+  try {
+    await api('/admin/settings/mod_url', { method: 'POST', body: JSON.stringify({ url }) });
+    showMsg(msg, 'Ссылка на клиент сохранена', 'ok');
+  } catch (e) { showMsg(msg, e.message); }
+}
+
+async function loadSettings() {
+  try {
+    const data = await api('/client/mod_url');
+    document.getElementById('mod-url').value = data.url;
+  } catch (e) {}
 }
 
 /* --- ПОКУПКА --- */
