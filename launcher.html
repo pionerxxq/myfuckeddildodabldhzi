@@ -13,6 +13,7 @@
     display: flex; flex-direction: column;
   }
   
+  /* --- КАСТОМНЫЙ HEADER --- */
   .title-bar {
     height: 40px; background: rgba(10, 10, 10, 0.98);
     display: flex; align-items: center; justify-content: space-between;
@@ -28,6 +29,7 @@
   .win-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
   .win-btn.close:hover { background: #ef4444; color: #fff; }
 
+  /* --- ОСНОВНОЙ КОНТЕНТ --- */
   .content-wrapper { flex: 1; position: relative; display: flex; overflow: hidden; }
   .overlay { position: absolute; inset: 0; background: rgba(15, 15, 20, 0.65); backdrop-filter: blur(3px); z-index: 1; }
   
@@ -35,6 +37,7 @@
     position: relative; z-index: 2; width: 100%; height: 100%; display: flex; overflow: hidden;
   }
   
+  /* --- ЛЕВАЯ ПАНЕЛЬ (ЛОГИН) --- */
   .login-panel { 
     width: 350px; padding: 30px; background: rgba(10, 10, 10, 0.95); 
     display: flex; flex-direction: column; justify-content: space-between; 
@@ -58,6 +61,7 @@
   .login-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
   .login-footer a:hover { color: #38bdf8; }
 
+  /* --- ПРАВАЯ ПАНЕЛЬ (ЛАУНЧЕР) --- */
   .main-panel { flex: 1; padding: 30px; display: flex; flex-direction: column; position: relative; overflow-y: auto; }
   .news-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
   
@@ -109,6 +113,7 @@
 </head>
 <body>
 
+  <!-- КАСТОМНЫЙ ХЕДЕР -->
   <div class="title-bar" id="title-bar">
     <div class="title-bar-text">Garmonia Launcher</div>
     <div class="window-controls">
@@ -117,10 +122,12 @@
     </div>
   </div>
 
+  <!-- ОСНОВНОЙ КОНТЕНТ -->
   <div class="content-wrapper">
     <div class="overlay"></div>
     <div class="launcher-box">
       
+      <!-- ПАНЕЛЬ ВХОДА -->
       <div class="login-panel" id="login-panel">
         <div class="login-top">
           <div class="logo">GARMONIA</div>
@@ -137,6 +144,7 @@
         </div>
       </div>
 
+      <!-- ПАНЕЛЬ ИГРЫ -->
       <div class="main-panel" id="main-panel" style="display: none;">
         <div class="news-title">Привет, <span id="user-name" style="color:#38bdf8"></span>!</div>
         
@@ -146,17 +154,17 @@
         </div>
 
         <div class="news-box">
-          <b>GarmoniaDLC - лучший выбор.</b><br>
-          - Хороший пвп функционал<br>
-          - Качественные визуалы.<br><br>
-          <i style="color:#888;">Скачайте клиент и нажмите "Играть".</i>
+          <b>📢 Обновление 1.0.4</b><br>
+          - Оптимизация рендера.<br>
+          - Новые плащи и косметика.<br><br>
+          <i style="color:#888;">Скачайте клиент (если не скачан) и нажмите "Играть".</i>
         </div>
 
         <div class="settings-box">
           <div class="setting-item">
             <label>Папка установки (1.21.11)</label>
             <div class="folder-group">
-              <input type="text" id="install-path" class="folder-input" value="C:\GarmAntiLeak\clients\Garmonia\1.21.11\" readonly>
+              <input type="text" id="install-path" class="folder-input" value="D:\GarmAntiLeak\clients\Garmonia\1.21.11\" readonly>
               <button class="btn-small" onclick="selectFolder()">Обзор</button>
             </div>
           </div>
@@ -178,8 +186,8 @@
           </div>
           
           <button class="btn btn-download" id="download-btn" onclick="downloadGame()">СКАЧАТЬ КЛИЕНТ</button>
-          
           <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
+          
           <div class="status-text" id="status-text">Система готова к запуску</div>
         </div>
       </div>
@@ -190,6 +198,7 @@
 <script>
 let myHwid = "UNKNOWN";
 
+// Загрузка сохраненных настроек при старте
 window.addEventListener('DOMContentLoaded', () => {
   const savedPath = localStorage.getItem('garmonia_path');
   if (savedPath) document.getElementById('install-path').value = savedPath;
@@ -198,31 +207,89 @@ window.addEventListener('DOMContentLoaded', () => {
   if (savedRam) document.getElementById('ram-select').value = savedRam;
 });
 
+// Сохраняем RAM при изменении
 document.getElementById('ram-select').addEventListener('change', (e) => localStorage.setItem('garmonia_ram', e.target.value));
 
+// Обмен сообщениями с C#
 if (window.chrome && window.chrome.webview) {
   document.getElementById('title-bar').addEventListener('mousedown', (e) => {
     if (e.target.tagName !== 'BUTTON') window.chrome.webview.postMessage("DRAG");
   });
 
   window.chrome.webview.addEventListener('message', event => {
-    if (event.data.startsWith("HWID:")) myHwid = event.data.split(":")[1];
-    if (event.data.startsWith("FOLDER_SELECTED:")) {
-      const newPath = event.data.replace("FOLDER_SELECTED:", "");
+    const msg = event.data;
+    
+    if (msg.startsWith("HWID:")) myHwid = msg.split(":")[1];
+    
+    if (msg.startsWith("FOLDER_SELECTED:")) {
+      const newPath = msg.replace("FOLDER_SELECTED:", "");
       document.getElementById('install-path').value = newPath;
       localStorage.setItem('garmonia_path', newPath);
     }
+    
+    // Прогресс скачивания (реальный)
+    if (msg.startsWith("PROGRESS:")) {
+      const percent = parseInt(msg.split(":")[1]);
+      if (!isNaN(percent)) {
+        document.getElementById('progress-bar').style.width = percent + '%';
+      }
+    }
+    
+    // Текст статуса
+    if (msg.startsWith("STATUS:")) {
+      document.getElementById('status-text').innerText = msg.split(":")[1];
+    }
+    
+    // Установка завершена
+    if (msg === "INSTALL_SUCCESS") {
+      document.getElementById('status-text').innerText = "Установка завершена!";
+      document.getElementById('progress-bar').style.width = '100%';
+      setTimeout(() => {
+        document.getElementById('download-btn').style.display = 'block';
+        document.getElementById('progress-container').style.display = 'none';
+        document.getElementById('progress-bar').style.width = '0%';
+      }, 2000);
+    }
+    
+    // Ошибка установки/запуска
+    if (msg === "INSTALL_ERROR") {
+      document.getElementById('status-text').innerText = "Ошибка";
+      document.getElementById('download-btn').style.display = 'block';
+      document.getElementById('play-btn').style.display = 'block';
+      document.getElementById('progress-container').style.display = 'none';
+      document.getElementById('progress-bar').style.width = '0%';
+    }
+    
+    // Игра успешно запущена
+    if (msg === "LAUNCH_SUCCESS") {
+      document.getElementById('status-text').innerText = "Игра запущена!";
+      document.getElementById('progress-container').style.display = 'none';
+      document.getElementById('progress-bar').style.width = '0%';
+      // Кнопка "Играть" скрыта, пока игра открыта
+    }
+
+    // Игра закрыта (возвращаем кнопку)
+    if (msg === "GAME_EXITED") {
+      document.getElementById('status-text').innerText = "Игра закрыта. Можно запускать снова.";
+      document.getElementById('play-btn').style.display = 'block';
+      document.getElementById('progress-container').style.display = 'none';
+      document.getElementById('progress-bar').style.width = '0%';
+    }
   });
+  
   window.chrome.webview.postMessage("GET_HWID");
 }
 
+// Управление окном
 function minimizeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("MINIMIZE"); }
 function closeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("CLOSE"); }
 
+// Выбор папки
 function selectFolder() {
   if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("SELECT_FOLDER");
 }
 
+// Авторизация
 async function login() {
   const u = document.getElementById('username').value.trim();
   const p = document.getElementById('password').value;
@@ -257,15 +324,16 @@ async function login() {
   }
 }
 
+// Скачивание
 async function downloadGame() {
   const path = document.getElementById('install-path').value;
-  const bar = document.getElementById('progress-bar');
   const container = document.getElementById('progress-container');
   const status = document.getElementById('status-text');
 
   document.getElementById('download-btn').style.display = 'none';
   container.style.display = 'block';
   status.innerText = 'Получение ссылки...';
+  document.getElementById('progress-bar').style.width = '0%';
 
   try {
     const res = await fetch('/api/client/mod_url');
@@ -273,30 +341,11 @@ async function downloadGame() {
     
     if (!data.url) throw new Error("Ссылка на мод не настроена на сервере.");
 
-    status.innerText = 'Скачивание клиента...';
-
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 10) + 5;
-      if (progress > 100) progress = 100;
-      bar.style.width = progress + '%';
-
-      if (progress >= 100) {
-        clearInterval(interval);
-        status.innerText = 'Установка завершена!';
-        
-        if (window.chrome && window.chrome.webview) {
-          window.chrome.webview.postMessage(`DOWNLOAD_MINECRAFT|${path}|${data.url}`);
-        }
-        
-        setTimeout(() => {
-          document.getElementById('download-btn').style.display = 'block';
-          container.style.display = 'none';
-          bar.style.width = '0%';
-        }, 2000);
-      }
-    }, 200);
-
+    status.innerText = 'Подготовка к скачиванию...';
+    
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.postMessage(`DOWNLOAD_MINECRAFT|${path}|${data.url}`);
+    }
   } catch (e) {
     status.innerText = 'Ошибка';
     alert(e.message);
@@ -305,36 +354,27 @@ async function downloadGame() {
   }
 }
 
+// Запуск игры
 function playGame() {
   const btn = document.getElementById('play-btn');
-  const bar = document.getElementById('progress-bar');
   const container = document.getElementById('progress-container');
   const status = document.getElementById('status-text');
 
   const selectedRam = document.getElementById('ram-select').value;
   const installPath = document.getElementById('install-path').value;
+  const playerName = document.getElementById('user-name').innerText; // Берем ник
 
   btn.style.display = 'none';
   container.style.display = 'block';
-  status.innerText = 'Проверка файлов...';
-
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += Math.floor(Math.random() * 15) + 5;
-    if (progress > 100) progress = 100;
-    bar.style.width = progress + '%';
-
-    if (progress >= 100) {
-      clearInterval(interval);
-      status.innerText = 'Запуск клиента...';
-      
-      if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage(`START_MINECRAFT|1.21.11 Fabric|${selectedRam}|${installPath}`);
-      } else {
-        alert("Играть можно только через GarmoniaLauncher.exe!");
-      }
-    }
-  }, 200);
+  document.getElementById('progress-bar').style.width = '10%';
+  status.innerText = 'Запуск клиента...';
+  
+  if (window.chrome && window.chrome.webview) {
+    // Отправляем ник в C#
+    window.chrome.webview.postMessage(`START_MINECRAFT|1.21.11 Fabric|${selectedRam}|${installPath}|${playerName}`);
+  } else {
+    alert("Играть можно только через GarmoniaLauncher.exe!");
+  }
 }
 </script>
 </body>
