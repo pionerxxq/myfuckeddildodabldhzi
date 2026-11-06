@@ -7,7 +7,7 @@ const db = require('./db');
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin12345';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'aassee33';
 const DAY = 24 * 60 * 60 * 1000;
 const ALLOWED_DAYS = [7, 30, 90, 180, 365, 9999];
 
