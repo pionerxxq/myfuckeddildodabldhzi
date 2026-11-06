@@ -13,7 +13,6 @@
     display: flex; flex-direction: column;
   }
   
-  /* КАСТОМНЫЙ HEADER */
   .title-bar {
     height: 40px; background: rgba(10, 10, 10, 0.98);
     display: flex; align-items: center; justify-content: space-between;
@@ -29,7 +28,6 @@
   .win-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
   .win-btn.close:hover { background: #ef4444; color: #fff; }
 
-  /* КОНТЕНТ */
   .content-wrapper { flex: 1; position: relative; display: flex; overflow: hidden; }
   .overlay { position: absolute; inset: 0; background: rgba(15, 15, 20, 0.65); backdrop-filter: blur(3px); z-index: 1; }
   
@@ -37,7 +35,6 @@
     position: relative; z-index: 2; width: 100%; height: 100%; display: flex; overflow: hidden;
   }
   
-  /* Левая панель */
   .login-panel { 
     width: 350px; padding: 30px; background: rgba(10, 10, 10, 0.95); 
     display: flex; flex-direction: column; justify-content: space-between; 
@@ -61,14 +58,12 @@
   .login-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
   .login-footer a:hover { color: #38bdf8; }
 
-  /* Правая панель */
   .main-panel { flex: 1; padding: 30px; display: flex; flex-direction: column; position: relative; overflow-y: auto; }
   .news-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
   
   .news-box { flex: 1; min-height: 120px; background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 15px; backdrop-filter: blur(5px); }
   .news-box b { color: #fff; }
 
-  /* Блок настроек */
   .settings-box { 
     background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
     padding: 15px 20px; margin-bottom: 20px; display: grid; grid-template-columns: 120px 150px 1fr; gap: 15px; backdrop-filter: blur(5px);
@@ -97,15 +92,20 @@
   .bottom-area { display: flex; flex-direction: column; align-items: center; }
   .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; margin-bottom: 15px; overflow: hidden; display: none; }
   .progress-bar { height: 100%; width: 0%; background: #38bdf8; transition: width 0.3s; box-shadow: 0 0 10px #38bdf8; }
+  
+  /* Новая кнопка скачивания для админа */
+  .btn-download {
+    width: 100%; background: #f59e0b; color: #000; font-size: 16px; padding: 14px; border-radius: 12px;
+    font-weight: bold; display: none; border: none; cursor: pointer; margin-bottom: 10px; transition: 0.2s;
+  }
+  .btn-download:hover { background: #d97706; }
+
   .btn-play {
     width: 100%; background: #22c55e; color: #000; font-size: 18px; padding: 16px; border-radius: 12px;
     font-weight: 900; letter-spacing: 1px; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); display: none; border: none; cursor: pointer;
   }
   .btn-play:hover { background: #16a34a; }
   .status-text { font-size: 13px; color: #ccc; margin-top: 10px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-
-  .spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #38bdf8; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -150,11 +150,11 @@
           <b>📢 Обновление 1.0.4</b><br>
           - Оптимизация рендера.<br>
           - Новые плащи и косметика.<br><br>
-          <i style="color:#888;">Выберите настройки и нажмите "Играть".</i>
+          <i style="color:#888;">Нажмите "Играть" для входа в игру.</i>
         </div>
 
-        <!-- БЛОК НАСТРОЕК -->
-        <div class="settings-box">
+        <!-- БЛОК НАСТРОЕК. Скрыт для обычных юзеров -->
+        <div class="settings-box" id="settings-box" style="display: none;">
           <div class="setting-item">
             <label>Версия</label>
             <select id="version-select">
@@ -174,7 +174,7 @@
           <div class="setting-item">
             <label>Папка установки</label>
             <div class="folder-group">
-              <input type="text" id="install-path" class="folder-input" value="C:\Games\Garmonia" readonly>
+              <input type="text" id="install-path" class="folder-input" value="C:\GarmAntiLeak\clients\Garmonia\1.21.11\" readonly>
               <button class="btn-small" onclick="selectFolder()">Обзор</button>
             </div>
           </div>
@@ -184,6 +184,10 @@
           <div class="progress-container" id="progress-container">
             <div class="progress-bar" id="progress-bar"></div>
           </div>
+          
+          <!-- Кнопка скачивания (только для админа) -->
+          <button class="btn btn-download" id="download-btn" onclick="downloadGame()">СКАЧАТЬ КЛИЕНТ</button>
+          
           <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
           <div class="status-text" id="status-text">Система готова к запуску</div>
         </div>
@@ -194,44 +198,31 @@
 
 <script>
 let myHwid = "UNKNOWN";
+let currentUserRole = "";
+let currentUserUid = 0;
 
-// Функция загрузки сохраненных настроек при запуске
+// Загрузка сохраненных настроек
 window.addEventListener('DOMContentLoaded', () => {
   const savedPath = localStorage.getItem('garmonia_path');
   if (savedPath) document.getElementById('install-path').value = savedPath;
-
+  
   const savedRam = localStorage.getItem('garmonia_ram');
   if (savedRam) document.getElementById('ram-select').value = savedRam;
-
-  const savedVersion = localStorage.getItem('garmonia_version');
-  if (savedVersion) document.getElementById('version-select').value = savedVersion;
 });
 
-// Сохраняем RAM при изменении
-document.getElementById('ram-select').addEventListener('change', (e) => {
-  localStorage.setItem('garmonia_ram', e.target.value);
-});
-
-// Сохраняем версию при изменении
-document.getElementById('version-select').addEventListener('change', (e) => {
-  localStorage.setItem('garmonia_version', e.target.value);
-});
+document.getElementById('ram-select').addEventListener('change', (e) => localStorage.setItem('garmonia_ram', e.target.value));
 
 if (window.chrome && window.chrome.webview) {
   document.getElementById('title-bar').addEventListener('mousedown', (e) => {
-    if (e.target.tagName !== 'BUTTON') {
-      window.chrome.webview.postMessage("DRAG");
-    }
+    if (e.target.tagName !== 'BUTTON') window.chrome.webview.postMessage("DRAG");
   });
 
   window.chrome.webview.addEventListener('message', event => {
     if (event.data.startsWith("HWID:")) myHwid = event.data.split(":")[1];
-    
-    // Ловим выбранную папку от C# и сохраняем её в память
     if (event.data.startsWith("FOLDER_SELECTED:")) {
       const newPath = event.data.replace("FOLDER_SELECTED:", "");
       document.getElementById('install-path').value = newPath;
-      localStorage.setItem('garmonia_path', newPath); // <--- СОХРАНЯЕМ ПАПКУ
+      localStorage.setItem('garmonia_path', newPath);
     }
   });
   window.chrome.webview.postMessage("GET_HWID");
@@ -242,7 +233,6 @@ function closeApp() { if (window.chrome && window.chrome.webview) window.chrome.
 
 function selectFolder() {
   if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("SELECT_FOLDER");
-  else alert("Выбор папки доступен только в лаунчере!");
 }
 
 async function login() {
@@ -253,7 +243,6 @@ async function login() {
   const spinner = document.getElementById('login-spinner');
 
   if (!u || !p) { err.innerText = "Введите логин и пароль"; err.style.display = 'block'; return; }
-
   btn.style.display = 'none'; spinner.style.display = 'block'; err.style.display = 'none';
 
   try {
@@ -267,15 +256,65 @@ async function login() {
 
     if (!res.ok) throw new Error(data.error);
 
+    // УСПЕШНЫЙ ВХОД. ПРОВЕРКА НА АДМИНА
+    currentUserRole = data.role;
+    currentUserUid = data.uid;
+
     document.getElementById('login-panel').style.display = 'none';
     document.getElementById('main-panel').style.display = 'flex';
     document.getElementById('user-name').innerText = u;
-    document.getElementById('play-btn').style.display = 'block';
+
+    // Если это админ (uid 1 или роль owner/admin) - показываем настройки и кнопку скачать
+    if (currentUserUid === 1 || currentUserRole === 'owner' || currentUserRole === 'admin') {
+      document.getElementById('settings-box').style.display = 'grid';
+      document.getElementById('download-btn').style.display = 'block';
+      document.getElementById('play-btn').style.display = 'block';
+      document.getElementById('status-text').innerText = "Режим Администратора: доступно скачивание";
+    } else {
+      // Обычный юзер просто видит кнопку играть
+      document.getElementById('settings-box').style.display = 'none';
+      document.getElementById('download-btn').style.display = 'none';
+      document.getElementById('play-btn').style.display = 'block';
+    }
 
   } catch (e) {
     err.innerText = e.message; err.style.display = 'block';
     btn.style.display = 'block'; spinner.style.display = 'none';
   }
+}
+
+function downloadGame() {
+  const path = document.getElementById('install-path').value;
+  const bar = document.getElementById('progress-bar');
+  const container = document.getElementById('progress-container');
+  const status = document.getElementById('status-text');
+
+  document.getElementById('download-btn').style.display = 'none';
+  container.style.display = 'block';
+  status.innerText = 'Скачивание 1.21.11 Fabric...';
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 10) + 5;
+    if (progress > 100) progress = 100;
+    bar.style.width = progress + '%';
+
+    if (progress >= 100) {
+      clearInterval(interval);
+      status.innerText = 'Установка завершена!';
+      
+      if (window.chrome && window.chrome.webview) {
+        // Отправляем команду C# на скачивание
+        window.chrome.webview.postMessage(`DOWNLOAD_MINECRAFT|${path}`);
+      }
+      
+      setTimeout(() => {
+        document.getElementById('download-btn').style.display = 'block';
+        container.style.display = 'none';
+        bar.style.width = '0%';
+      }, 2000);
+    }
+  }, 200);
 }
 
 function playGame() {
@@ -284,8 +323,8 @@ function playGame() {
   const container = document.getElementById('progress-container');
   const status = document.getElementById('status-text');
 
-  const selectedVersion = document.getElementById('version-select').value;
-  const selectedRam = document.getElementById('ram-select').value;
+  const selectedVersion = document.getElementById('version-select') ? document.getElementById('version-select').value : "1.21.11 Fabric";
+  const selectedRam = document.getElementById('ram-select') ? document.getElementById('ram-select').value : "4096";
   const installPath = document.getElementById('install-path').value;
 
   btn.style.display = 'none';
