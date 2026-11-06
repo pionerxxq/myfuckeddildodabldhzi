@@ -82,21 +82,13 @@
 <script>
 let myHwid = "UNKNOWN";
 
-// Функция запроса HWID у программы C# (если она запущена)
-function getHwidFromLauncher() {
-  if (window.chrome && window.chrome.webview) {
-    window.chrome.webview.postMessage("GET_HWID");
-  }
-}
-
-// Слушаем ответ от C# (он пришлет реальный HWID)
 if (window.chrome && window.chrome.webview) {
   window.chrome.webview.addEventListener('message', event => {
     if (event.data.startsWith("HWID:")) {
       myHwid = event.data.split(":")[1];
     }
   });
-  getHwidFromLauncher();
+  window.chrome.webview.postMessage("GET_HWID");
 }
 
 async function login() {
@@ -113,7 +105,6 @@ async function login() {
   btn.style.display = 'none'; spinner.style.display = 'block'; err.style.display = 'none';
 
   try {
-    // Если HWID не получен от C#, используем заглушку (для тестов в браузере)
     const hwidToSend = myHwid === "UNKNOWN" ? "TEST_HWID_BROWSER" : myHwid;
 
     const res = await fetch('/api/client/auth', {
@@ -128,6 +119,7 @@ async function login() {
     document.getElementById('login-panel').style.display = 'none';
     document.getElementById('main-panel').style.display = 'flex';
     document.getElementById('user-name').innerText = u;
+    document.getElementById('play-btn').style.display = 'block';
 
   } catch (e) {
     err.innerText = e.message; err.style.display = 'block';
@@ -155,7 +147,6 @@ function playGame() {
       clearInterval(interval);
       status.innerText = 'Запуск клиента...';
       
-      // ОТПРАВЛЯЕМ КОМАНДУ В C#
       if (window.chrome && window.chrome.webview) {
         window.chrome.webview.postMessage("START_MINECRAFT");
       } else {
