@@ -48,7 +48,7 @@ function schema(dialect) {
 async function initDb() {
   for (const sql of schema(db.dialect)) await db.exec(sql);
 
-  // Безопасное обновление старой таблицы users (добавляет колонки, если их нет)
+  // Безопасное обновление старой таблицы users
   try { await db.exec('ALTER TABLE users ADD COLUMN is_banned INT NOT NULL DEFAULT 0'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(255) NULL'); } catch(e) {}
 
@@ -191,7 +191,7 @@ app.post('/api/admin/users/:uid/ban', auth, adminOnly, wrap(async (req, res) => 
   if (uid === req.user.uid) return res.status(400).json({ error: 'Нельзя забанить себя' });
   
   await db.run('UPDATE users SET is_banned = ?, ban_reason = ? WHERE uid = ?', [ban ? 1 : 0, reason || null, uid]);
-  if (ban) await db.run('DELETE FROM sessions WHERE uid = ?', [uid]); // Разлогиниваем забаненного
+  if (ban) await db.run('DELETE FROM sessions WHERE uid = ?', [uid]);
   res.json({ ok: true });
 }));
 
