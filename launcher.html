@@ -6,16 +6,18 @@
 <style>
   * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 0; height: 100vh; width: 100vw; background: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/56/Three_biomes_concept_art.jpg/revision/latest?cb=20211024124434') center/cover no-repeat;
+    margin: 0; padding: 0; height: 100vh; width: 100vw; 
+    /* Ночной арт майнкрафта */
+    background: url('https://i.pinimg.com/736x/a6/56/a1/a656a1d0e692c6180a6c3a6d213590f8.jpg') center/cover no-repeat;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center;
     color: white; overflow: hidden; user-select: none;
   }
-  .overlay { position: absolute; inset: 0; background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(8px); z-index: 1; }
+  /* Серое затемнение вместо черного */
+  .overlay { position: absolute; inset: 0; background: rgba(18, 18, 22, 0.75); backdrop-filter: blur(4px); z-index: 1; }
   
-  /* Лаунчер занимает всю область */
   .launcher-box {
     position: relative; z-index: 2; width: 100%; height: 100%;
-    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(17, 17, 17, 0.9); border: 1px solid rgba(255,255,255,0.1);
     display: flex; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;
   }
   
@@ -39,7 +41,6 @@
   .btn-login:hover { background: #0ea5e9; }
   .error { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
 
-  /* Футер левой панели */
   .login-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666; border-top: 1px solid #222; padding-top: 15px; }
   .login-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
   .login-footer a:hover { color: #38bdf8; }
@@ -48,17 +49,23 @@
   .main-panel { flex: 1; padding: 30px; display: flex; flex-direction: column; position: relative; }
   .news-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: #fff; }
   
-  .news-box { flex: 1; background: #161616; border: 1px solid #222; border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #aaa; line-height: 1.6; margin-bottom: 20px; }
+  .news-box { flex: 1; background: rgba(22,22,22,0.8); border: 1px solid #333; border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 15px; }
   .news-box b { color: #fff; }
+
+  /* Блок настроек */
+  .settings-box { background: rgba(22,22,22,0.8); border: 1px solid #333; border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; display: flex; gap: 20px; }
+  .setting-item { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .setting-item label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
   
-  /* Кнопки быстрого доступа */
-  .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-  .quick-btn {
-    background: #1a1a1a; border: 1px solid #333; color: #ccc; text-decoration: none;
-    display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 8px;
-    font-size: 13px; font-weight: 600; transition: all 0.2s;
+  select, .folder-input {
+    width: 100%; padding: 10px; background: #111; border: 1px solid #333;
+    border-radius: 8px; color: white; font-size: 14px; outline: none;
   }
-  .quick-btn:hover { background: #222; border-color: #38bdf8; color: #38bdf8; }
+  select:focus, .folder-input:focus { border-color: #38bdf8; }
+  
+  .folder-group { display: flex; gap: 8px; }
+  .btn-small { padding: 10px 15px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+  .btn-small:hover { background: #38bdf8; color: #000; border-color: #38bdf8; }
 
   .bottom-area { display: flex; flex-direction: column; align-items: center; }
   .progress-container { width: 100%; height: 6px; background: #222; border-radius: 3px; margin-bottom: 15px; overflow: hidden; display: none; }
@@ -78,7 +85,6 @@
   <div class="overlay"></div>
   <div class="launcher-box">
     
-    <!-- Панель входа -->
     <div class="login-panel" id="login-panel">
       <div class="login-top">
         <div class="logo">GARMONIA</div>
@@ -95,22 +101,35 @@
       </div>
     </div>
 
-    <!-- Главная панель -->
     <div class="main-panel" id="main-panel" style="display: none;">
       <div class="news-title">Привет, <span id="user-name" style="color:#38bdf8"></span>!</div>
       
-      <!-- Быстрые ссылки -->
-      <div class="quick-links">
-        <a href="https://garmoniadlc.up.railway.app" target="_blank" class="quick-btn">Личный кабинет</a>
-        <a href="https://garmoniadlc.up.railway.app/#pricing" target="_blank" class="quick-btn">Купить подписку</a>
-      </div>
-
       <div class="news-box">
         <b>📢 Обновление 1.0.4</b><br>
-        - Оптимизация рендера в тяжелых чанках.<br>
-        - Исправлен вылет при загрузке миров.<br>
-        - Добавлены новые кастомные плащи.<br><br>
-        <i style="color:#888;">Нажмите "Играть", чтобы запустить клиент.</i>
+        - Оптимизация рендера.<br>
+        - Новые плащи и косметика.<br><br>
+        <i style="color:#888;">Выберите настройки и нажмите "Играть".</i>
+      </div>
+
+      <!-- Блок настроек -->
+      <div class="settings-box">
+        <div class="setting-item">
+          <label>Оперативная память (RAM)</label>
+          <select id="ram-select">
+            <option value="2048">2 GB</option>
+            <option value="4096" selected>4 GB</option>
+            <option value="6144">6 GB</option>
+            <option value="8192">8 GB</option>
+            <option value="16384">16 GB</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>Папка установки</label>
+          <div class="folder-group">
+            <input type="text" id="install-path" class="folder-input" value="C:\Games\Garmonia" readonly>
+            <button class="btn-small" onclick="selectFolder()">Обзор</button>
+          </div>
+        </div>
       </div>
       
       <div class="bottom-area">
@@ -127,13 +146,27 @@
 <script>
 let myHwid = "UNKNOWN";
 
+// Обмен сообщениями с C#
 if (window.chrome && window.chrome.webview) {
   window.chrome.webview.addEventListener('message', event => {
     if (event.data.startsWith("HWID:")) {
       myHwid = event.data.split(":")[1];
     }
+    // Получаем выбранную папку из C#
+    if (event.data.startsWith("FOLDER_SELECTED:")) {
+      document.getElementById('install-path').value = event.data.split(":")[1];
+    }
   });
   window.chrome.webview.postMessage("GET_HWID");
+}
+
+// Вызов диалога выбора папки в C#
+function selectFolder() {
+  if (window.chrome && window.chrome.webview) {
+    window.chrome.webview.postMessage("SELECT_FOLDER");
+  } else {
+    alert("Выбор папки доступен только в лаунчере!");
+  }
 }
 
 async function login() {
@@ -143,15 +176,12 @@ async function login() {
   const btn = document.getElementById('login-btn');
   const spinner = document.getElementById('login-spinner');
 
-  if (!u || !p) {
-    err.innerText = "Введите логин и пароль"; err.style.display = 'block'; return;
-  }
+  if (!u || !p) { err.innerText = "Введите логин и пароль"; err.style.display = 'block'; return; }
 
   btn.style.display = 'none'; spinner.style.display = 'block'; err.style.display = 'none';
 
   try {
     const hwidToSend = myHwid === "UNKNOWN" ? "TEST_HWID_BROWSER" : myHwid;
-
     const res = await fetch('/api/client/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -178,6 +208,10 @@ function playGame() {
   const container = document.getElementById('progress-container');
   const status = document.getElementById('status-text');
 
+  // Получаем настройки
+  const selectedRam = document.getElementById('ram-select').value;
+  const installPath = document.getElementById('install-path').value;
+
   btn.style.display = 'none';
   container.style.display = 'block';
   status.innerText = 'Проверка файлов...';
@@ -193,7 +227,8 @@ function playGame() {
       status.innerText = 'Запуск клиента...';
       
       if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage("START_MINECRAFT");
+        // Отправляем C# данные: RAM и путь
+        window.chrome.webview.postMessage(`START_MINECRAFT|${selectedRam}|${installPath}`);
       } else {
         alert("Играть можно только через GarmoniaLauncher.exe!");
       }
