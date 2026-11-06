@@ -406,6 +406,21 @@
 const API_BASE = '/api';
 const DISCORD_USERNAME = 'd3ppr3ss1vefr1ck';
 
+const roleNames = {
+  owner: 'Владелец',
+  admin: 'Администратор',
+  media: 'Медиа',
+  user: 'Пользователь',
+  player: 'Игрок'
+};
+const roleColors = {
+  owner: '#ef4444',
+  admin: '#ef4444',
+  media: '#a855f7',
+  user: '#38bdf8',
+  player: '#888888'
+};
+
 /* ============ СОСТОЯНИЕ ============ */
 const state = {
   token: localStorage.getItem('garmonia_token') || null,
@@ -456,8 +471,8 @@ function switchPage(name) {
   if ((name === 'admin' || name === 'dashboard') && !state.user) {
     name = 'auth';
   }
-  if (name === 'admin' && state.user && state.user.role !== 'admin') {
-    showToast('Доступ только для администратора', true);
+  if (name === 'admin' && state.user && state.user.role !== 'admin' && state.user.role !== 'owner') {
+    showToast('Доступ только для персонала', true);
     return;
   }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -517,7 +532,7 @@ function updateHeader() {
     bLogin.style.display = 'none';
     bDash.style.display = 'block';
     bLogout.style.display = 'block';
-    bAdmin.style.display = state.user.role === 'admin' ? 'block' : 'none';
+    bAdmin.style.display = (state.user.role === 'owner' || state.user.role === 'admin') ? 'block' : 'none';
   } else {
     bLogin.style.display = 'block';
     bDash.style.display = 'none';
@@ -568,7 +583,11 @@ function renderDashboard() {
   document.getElementById('dash-username').innerText = u.username;
   document.getElementById('dash-info-name').innerText = u.username;
   document.getElementById('dash-info-uid').innerText = u.uid;
-  document.getElementById('dash-info-role').innerText = u.role === 'admin' ? 'Администратор' : 'Пользователь';
+  
+  const rName = roleNames[u.role] || u.role;
+  const rColor = roleColors[u.role] || '#fff';
+  document.getElementById('dash-info-role').innerHTML = `<span style="color:${rColor}; font-weight:bold;">${rName}</span>`;
+  
   document.getElementById('dash-info-hwid').innerText = u.hwidResets || 0;
 
   const sub = document.getElementById('dash-info-sub');
@@ -615,20 +634,39 @@ async function loadAdminUsers() {
   const tbody = document.getElementById('admin-table-body');
   tbody.innerHTML = users.map(u => {
     const s = formatSub(u.subExpiresAt);
-    const roleLabel = u.role === 'admin'
-      ? '<span style="color:#ef4444">Администратор</span>'
-      : 'Пользователь';
+    
+    const roleSelect = `<select onchange="changeUserRole(${u.uid}, this.value)" style="background:#0f1014; color:${roleColors[u.role] || '#fff'}; border:1px solid #333; padding:6px; border-radius:6px; font-weight:600; outline:none; cursor:pointer;">
+      ${Object.entries(roleNames).map(([key, name]) => 
+        `<option value="${key}" ${u.role === key ? 'selected' : ''}>${name}</option>`
+      ).join('')}
+    </select>`;
+
     return `<tr>
       <td>${u.uid}</td>
       <td>${escapeHtml(u.username)}</td>
-      <td>${roleLabel}</td>
+      <td>${roleSelect}</td>
       <td style="color:${s.color}">${s.text}</td>
       <td>
         <button class="mini-btn" onclick="promptAddSub(${u.uid})">+ подписка</button>
-        ${u.role !== 'admin' ? `<button class="mini-btn danger" onclick="deleteUser(${u.uid})">удалить</button>` : ''}
+        ${u.role !== 'owner' ? `<button class="mini-btn danger" onclick="deleteUser(${u.uid})">удалить</button>` : ''}
       </td>
     </tr>`;
   }).join('');
+}
+async function changeUserRole(uid, role) {
+  try {
+    await api('/admin/users/' + uid + '/role', { method: 'POST', body: JSON.stringify({ role }) });
+    showToast('Роль обновлена');
+    if (uid === state.user.uid) {
+      state.user.role = role;
+      updateHeader();
+      renderDashboard();
+    }
+    await loadAdminUsers();
+  } catch (e) { 
+    alert(e.message); 
+    await loadAdminUsers();
+  }
 }
 async function promptAddSub(uid) {
   const v = prompt('Сколько дней подписки добавить? (0 — обнулить)');
