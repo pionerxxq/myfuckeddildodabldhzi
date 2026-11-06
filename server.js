@@ -64,7 +64,6 @@ async function initDb() {
   try { await db.exec('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(255) NULL'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN hwid VARCHAR(64) NULL'); } catch(e) {}
 
-  // Создаем дефолтную ссылку на мод, если ее нет
   const modUrlExists = await db.get('SELECT value FROM settings WHERE key_name = ?', ['mod_url']);
   if (!modUrlExists) {
     await db.run('INSERT INTO settings (key_name, value) VALUES (?, ?)', ['mod_url', 'https://example.com/garmonia-mod.jar']);
@@ -118,7 +117,7 @@ function newKeyCode() {
   return 'GARM-' + hex.match(/.{1,4}/g).join('-');
 }
 
-// --- API ---
+// --- API ДЛЯ САЙТА ---
 app.post('/api/register', wrap(async (req, res) => {
   const { username, password } = req.body || {};
   if (typeof username !== 'string' || typeof password !== 'string') return res.status(400).json({ error: 'Некорректные данные' });
@@ -301,8 +300,11 @@ app.delete('/api/admin/promos/:id', auth, adminOnly, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Маршрут для сохранения ссылки на мод
-app.post('/api/admin/settings/mod_url', auth, adminOnly, wrap(async (req, res) => {
+// Маршрут для сохранения ссылки на мод (ТОЛЬКО ДЛЯ UID 1)
+app.post('/api/admin/settings/mod_url', auth, wrap(async (req, res) => {
+  if (req.user.uid !== 1) {
+    return res.status(403).json({ error: 'Только создатель (UID 1) может менять ссылку' });
+  }
   const { url } = req.body;
   await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'mod_url']);
   res.json({ ok: true });
