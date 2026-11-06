@@ -10,10 +10,10 @@
     background: url('https://i.pinimg.com/736x/a6/56/a1/a656a1d0e692c6180a6c3a6d213590f8.jpg') center/cover no-repeat;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
     color: white; overflow: hidden; user-select: none;
-    display: flex; flex-direction: column; /* Меняем структуру для хедера */
+    display: flex; flex-direction: column;
   }
   
-  /* --- КАСТОМНЫЙ HEADER --- */
+  /* КАСТОМНЫЙ HEADER */
   .title-bar {
     height: 40px; background: rgba(10, 10, 10, 0.98);
     display: flex; align-items: center; justify-content: space-between;
@@ -29,7 +29,7 @@
   .win-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
   .win-btn.close:hover { background: #ef4444; color: #fff; }
 
-  /* --- ОСНОВНОЙ КОНТЕНТ --- */
+  /* КОНТЕНТ */
   .content-wrapper { flex: 1; position: relative; display: flex; overflow: hidden; }
   .overlay { position: absolute; inset: 0; background: rgba(15, 15, 20, 0.65); backdrop-filter: blur(3px); z-index: 1; }
   
@@ -68,21 +68,22 @@
   .news-box { flex: 1; min-height: 120px; background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 15px; backdrop-filter: blur(5px); }
   .news-box b { color: #fff; }
 
+  /* Блок настроек */
   .settings-box { 
     background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
-    padding: 15px 20px; margin-bottom: 20px; display: flex; gap: 20px; backdrop-filter: blur(5px);
+    padding: 15px 20px; margin-bottom: 20px; display: grid; grid-template-columns: 120px 150px 1fr; gap: 15px; backdrop-filter: blur(5px);
   }
-  .setting-item { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-  .setting-item label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .setting-item { display: flex; flex-direction: column; gap: 8px; }
+  .setting-item label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; white-space: nowrap; }
   
   select, .folder-input {
     width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid #444;
-    border-radius: 8px; color: white; font-size: 14px; outline: none;
+    border-radius: 8px; color: white; font-size: 13px; outline: none;
   }
   select:focus, .folder-input:focus { border-color: #38bdf8; }
   
   .folder-group { display: flex; gap: 8px; }
-  .btn-small { padding: 10px 15px; background: #333; border: 1px solid #555; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+  .btn-small { padding: 10px 15px; background: #333; border: 1px solid #555; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 600; white-space: nowrap; }
   .btn-small:hover { background: #38bdf8; color: #000; border-color: #38bdf8; }
 
   .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
@@ -109,7 +110,6 @@
 </head>
 <body>
 
-  <!-- КАСТОМНЫЙ ХЕДЕР -->
   <div class="title-bar" id="title-bar">
     <div class="title-bar-text">Garmonia Launcher</div>
     <div class="window-controls">
@@ -118,7 +118,6 @@
     </div>
   </div>
 
-  <!-- ОСНОВНОЙ КОНТЕНТ -->
   <div class="content-wrapper">
     <div class="overlay"></div>
     <div class="launcher-box">
@@ -154,9 +153,16 @@
           <i style="color:#888;">Выберите настройки и нажмите "Играть".</i>
         </div>
 
+        <!-- БЛОК НАСТРОЕК -->
         <div class="settings-box">
           <div class="setting-item">
-            <label>Оперативная память (RAM)</label>
+            <label>Версия</label>
+            <select id="version-select">
+              <option value="1.21.11 Fabric" selected>1.21.11 Fabric</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label>RAM</label>
             <select id="ram-select">
               <option value="2048">2 GB</option>
               <option value="4096" selected>4 GB</option>
@@ -189,8 +195,29 @@
 <script>
 let myHwid = "UNKNOWN";
 
+// Функция загрузки сохраненных настроек при запуске
+window.addEventListener('DOMContentLoaded', () => {
+  const savedPath = localStorage.getItem('garmonia_path');
+  if (savedPath) document.getElementById('install-path').value = savedPath;
+
+  const savedRam = localStorage.getItem('garmonia_ram');
+  if (savedRam) document.getElementById('ram-select').value = savedRam;
+
+  const savedVersion = localStorage.getItem('garmonia_version');
+  if (savedVersion) document.getElementById('version-select').value = savedVersion;
+});
+
+// Сохраняем RAM при изменении
+document.getElementById('ram-select').addEventListener('change', (e) => {
+  localStorage.setItem('garmonia_ram', e.target.value);
+});
+
+// Сохраняем версию при изменении
+document.getElementById('version-select').addEventListener('change', (e) => {
+  localStorage.setItem('garmonia_version', e.target.value);
+});
+
 if (window.chrome && window.chrome.webview) {
-  // Перетаскивание окна за кастомный хедер
   document.getElementById('title-bar').addEventListener('mousedown', (e) => {
     if (e.target.tagName !== 'BUTTON') {
       window.chrome.webview.postMessage("DRAG");
@@ -198,29 +225,24 @@ if (window.chrome && window.chrome.webview) {
   });
 
   window.chrome.webview.addEventListener('message', event => {
-    if (event.data.startsWith("HWID:")) {
-      myHwid = event.data.split(":")[1];
-    }
+    if (event.data.startsWith("HWID:")) myHwid = event.data.split(":")[1];
+    
+    // Ловим выбранную папку от C# и сохраняем её в память
     if (event.data.startsWith("FOLDER_SELECTED:")) {
-      document.getElementById('install-path').value = event.data.replace("FOLDER_SELECTED:", "");
+      const newPath = event.data.replace("FOLDER_SELECTED:", "");
+      document.getElementById('install-path').value = newPath;
+      localStorage.setItem('garmonia_path', newPath); // <--- СОХРАНЯЕМ ПАПКУ
     }
   });
   window.chrome.webview.postMessage("GET_HWID");
 }
 
-function minimizeApp() {
-  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("MINIMIZE");
-}
-function closeApp() {
-  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("CLOSE");
-}
+function minimizeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("MINIMIZE"); }
+function closeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("CLOSE"); }
 
 function selectFolder() {
-  if (window.chrome && window.chrome.webview) {
-    window.chrome.webview.postMessage("SELECT_FOLDER");
-  } else {
-    alert("Выбор папки доступен только в лаунчере!");
-  }
+  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("SELECT_FOLDER");
+  else alert("Выбор папки доступен только в лаунчере!");
 }
 
 async function login() {
@@ -262,6 +284,7 @@ function playGame() {
   const container = document.getElementById('progress-container');
   const status = document.getElementById('status-text');
 
+  const selectedVersion = document.getElementById('version-select').value;
   const selectedRam = document.getElementById('ram-select').value;
   const installPath = document.getElementById('install-path').value;
 
@@ -280,7 +303,7 @@ function playGame() {
       status.innerText = 'Запуск клиента...';
       
       if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage(`START_MINECRAFT|${selectedRam}|${installPath}`);
+        window.chrome.webview.postMessage(`START_MINECRAFT|${selectedVersion}|${selectedRam}|${installPath}`);
       } else {
         alert("Играть можно только через GarmoniaLauncher.exe!");
       }
