@@ -14,7 +14,14 @@
     position: relative; z-index: 2; width: 900px; height: 550px; background: #111; border: 1px solid rgba(255,255,255,0.1);
     border-radius: 20px; display: flex; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;
   }
-  .login-panel { width: 350px; padding: 40px; background: #0a0a0a; display: flex; flex-direction: column; justify-content: center; }
+  
+  /* Левая панель */
+  .login-panel { 
+    width: 350px; padding: 40px; background: #0a0a0a; 
+    display: flex; flex-direction: column; justify-content: space-between; /* Распределяем элементы */
+  }
+  .login-top { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  
   .logo { font-size: 32px; font-weight: 900; color: #38bdf8; margin-bottom: 30px; text-align: center; letter-spacing: 2px; }
   .form-group { margin-bottom: 15px; }
   input {
@@ -27,6 +34,13 @@
   .btn-login:hover { background: #0ea5e9; }
   .error { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
 
+  /* Футер левой панели */
+  .login-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666; border-top: 1px solid #222; padding-top: 15px; }
+  .login-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
+  .login-footer a:hover { color: #38bdf8; }
+  .version { color: #444; }
+
+  /* Правая панель */
   .main-panel { flex: 1; padding: 40px; display: flex; flex-direction: column; position: relative; }
   .news-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; color: #fff; }
   .news-box { flex: 1; background: #161616; border: 1px solid #222; border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #aaa; line-height: 1.6; }
@@ -49,15 +63,24 @@
   <div class="overlay"></div>
   <div class="launcher-box">
     
+    <!-- Панель входа -->
     <div class="login-panel" id="login-panel">
-      <div class="logo">GARMONIA</div>
-      <div class="form-group"><input type="text" id="username" placeholder="Логин"></div>
-      <div class="form-group"><input type="password" id="password" placeholder="Пароль"></div>
-      <button class="btn btn-login" id="login-btn" onclick="login()">Войти</button>
-      <div class="spinner" id="login-spinner"></div>
-      <div class="error" id="login-error"></div>
+      <div class="login-top">
+        <div class="logo">GARMONIA</div>
+        <div class="form-group"><input type="text" id="username" placeholder="Логин"></div>
+        <div class="form-group"><input type="password" id="password" placeholder="Пароль"></div>
+        <button class="btn btn-login" id="login-btn" onclick="login()">Войти</button>
+        <div class="spinner" id="login-spinner"></div>
+        <div class="error" id="login-error"></div>
+      </div>
+      <div class="login-footer">
+        <a href="https://garmoniadic.up.railway.app" target="_blank">Сайт</a>
+        <a href="https://discord.com/app" target="_blank">Discord</a>
+        <span class="version">v1.0.4</span>
+      </div>
     </div>
 
+    <!-- Главная панель -->
     <div class="main-panel" id="main-panel" style="display: none;">
       <div class="news-title">Добро пожаловать, <span id="user-name" style="color:#38bdf8"></span>!</div>
       <div class="news-box">
@@ -97,6 +120,7 @@ async function login() {
   const err = document.getElementById('login-error');
   const btn = document.getElementById('login-btn');
   const spinner = document.getElementById('login-spinner');
+  const footer = document.querySelector('.login-footer');
 
   if (!u || !p) {
     err.innerText = "Введите логин и пароль"; err.style.display = 'block'; return;
