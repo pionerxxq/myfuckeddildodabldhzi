@@ -66,7 +66,7 @@
 
   .settings-box { 
     background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
-    padding: 15px 20px; margin-bottom: 20px; display: grid; grid-template-columns: 120px 150px 1fr; gap: 15px; backdrop-filter: blur(5px);
+    padding: 15px 20px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 150px; gap: 15px; backdrop-filter: blur(5px);
   }
   .setting-item { display: flex; flex-direction: column; gap: 8px; }
   .setting-item label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; white-space: nowrap; }
@@ -93,7 +93,6 @@
   .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; margin-bottom: 15px; overflow: hidden; display: none; }
   .progress-bar { height: 100%; width: 0%; background: #38bdf8; transition: width 0.3s; box-shadow: 0 0 10px #38bdf8; }
   
-  /* Новая кнопка скачивания для админа */
   .btn-download {
     width: 100%; background: #f59e0b; color: #000; font-size: 16px; padding: 14px; border-radius: 12px;
     font-weight: bold; display: none; border: none; cursor: pointer; margin-bottom: 10px; transition: 0.2s;
@@ -150,16 +149,17 @@
           <b>📢 Обновление 1.0.4</b><br>
           - Оптимизация рендера.<br>
           - Новые плащи и косметика.<br><br>
-          <i style="color:#888;">Нажмите "Играть" для входа в игру.</i>
+          <i style="color:#888;">Скачайте клиент и нажмите "Играть".</i>
         </div>
 
-        <!-- БЛОК НАСТРОЕК. Скрыт для обычных юзеров -->
-        <div class="settings-box" id="settings-box" style="display: none;">
+        <!-- НАСТРОЙКИ (Только папка и RAM) -->
+        <div class="settings-box">
           <div class="setting-item">
-            <label>Версия</label>
-            <select id="version-select">
-              <option value="1.21.11 Fabric" selected>1.21.11 Fabric</option>
-            </select>
+            <label>Папка установки (1.21.11)</label>
+            <div class="folder-group">
+              <input type="text" id="install-path" class="folder-input" value="C:\GarmAntiLeak\clients\Garmonia\1.21.11\" readonly>
+              <button class="btn-small" onclick="selectFolder()">Обзор</button>
+            </div>
           </div>
           <div class="setting-item">
             <label>RAM</label>
@@ -171,13 +171,6 @@
               <option value="16384">16 GB</option>
             </select>
           </div>
-          <div class="setting-item">
-            <label>Папка установки</label>
-            <div class="folder-group">
-              <input type="text" id="install-path" class="folder-input" value="C:\GarmAntiLeak\clients\Garmonia\1.21.11\" readonly>
-              <button class="btn-small" onclick="selectFolder()">Обзор</button>
-            </div>
-          </div>
         </div>
         
         <div class="bottom-area">
@@ -185,7 +178,7 @@
             <div class="progress-bar" id="progress-bar"></div>
           </div>
           
-          <!-- Кнопка скачивания (только для админа) -->
+          <!-- Кнопка скачивания (видна всем) -->
           <button class="btn btn-download" id="download-btn" onclick="downloadGame()">СКАЧАТЬ КЛИЕНТ</button>
           
           <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
@@ -198,10 +191,7 @@
 
 <script>
 let myHwid = "UNKNOWN";
-let currentUserRole = "";
-let currentUserUid = 0;
 
-// Загрузка сохраненных настроек
 window.addEventListener('DOMContentLoaded', () => {
   const savedPath = localStorage.getItem('garmonia_path');
   if (savedPath) document.getElementById('install-path').value = savedPath;
@@ -256,26 +246,13 @@ async function login() {
 
     if (!res.ok) throw new Error(data.error);
 
-    // УСПЕШНЫЙ ВХОД. ПРОВЕРКА НА АДМИНА
-    currentUserRole = data.role;
-    currentUserUid = data.uid;
-
     document.getElementById('login-panel').style.display = 'none';
     document.getElementById('main-panel').style.display = 'flex';
     document.getElementById('user-name').innerText = u;
-
-    // Если это админ (uid 1 или роль owner/admin) - показываем настройки и кнопку скачать
-    if (currentUserUid === 1 || currentUserRole === 'owner' || currentUserRole === 'admin') {
-      document.getElementById('settings-box').style.display = 'grid';
-      document.getElementById('download-btn').style.display = 'block';
-      document.getElementById('play-btn').style.display = 'block';
-      document.getElementById('status-text').innerText = "Режим Администратора: доступно скачивание";
-    } else {
-      // Обычный юзер просто видит кнопку играть
-      document.getElementById('settings-box').style.display = 'none';
-      document.getElementById('download-btn').style.display = 'none';
-      document.getElementById('play-btn').style.display = 'block';
-    }
+    
+    // Показываем кнопки скачивания и игры ВСЕМ
+    document.getElementById('download-btn').style.display = 'block';
+    document.getElementById('play-btn').style.display = 'block';
 
   } catch (e) {
     err.innerText = e.message; err.style.display = 'block';
@@ -283,7 +260,7 @@ async function login() {
   }
 }
 
-function downloadGame() {
+async function downloadGame() {
   const path = document.getElementById('install-path').value;
   const bar = document.getElementById('progress-bar');
   const container = document.getElementById('progress-container');
@@ -291,30 +268,45 @@ function downloadGame() {
 
   document.getElementById('download-btn').style.display = 'none';
   container.style.display = 'block';
-  status.innerText = 'Скачивание 1.21.11 Fabric...';
+  status.innerText = 'Получение ссылки...';
 
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += Math.floor(Math.random() * 10) + 5;
-    if (progress > 100) progress = 100;
-    bar.style.width = progress + '%';
+  try {
+    const res = await fetch('/api/client/mod_url');
+    const data = await res.json();
+    
+    if (!data.url) throw new Error("Ссылка на мод не настроена на сервере.");
 
-    if (progress >= 100) {
-      clearInterval(interval);
-      status.innerText = 'Установка завершена!';
-      
-      if (window.chrome && window.chrome.webview) {
-        // Отправляем команду C# на скачивание
-        window.chrome.webview.postMessage(`DOWNLOAD_MINECRAFT|${path}`);
+    status.innerText = 'Скачивание клиента...';
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 10) + 5;
+      if (progress > 100) progress = 100;
+      bar.style.width = progress + '%';
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        status.innerText = 'Установка завершена!';
+        
+        if (window.chrome && window.chrome.webview) {
+          // Отправляем C#: команду, путь и ссылку
+          window.chrome.webview.postMessage(`DOWNLOAD_MINECRAFT|${path}|${data.url}`);
+        }
+        
+        setTimeout(() => {
+          document.getElementById('download-btn').style.display = 'block';
+          container.style.display = 'none';
+          bar.style.width = '0%';
+        }, 2000);
       }
-      
-      setTimeout(() => {
-        document.getElementById('download-btn').style.display = 'block';
-        container.style.display = 'none';
-        bar.style.width = '0%';
-      }, 2000);
-    }
-  }, 200);
+    }, 200);
+
+  } catch (e) {
+    status.innerText = 'Ошибка';
+    alert(e.message);
+    document.getElementById('download-btn').style.display = 'block';
+    container.style.display = 'none';
+  }
 }
 
 function playGame() {
@@ -323,8 +315,7 @@ function playGame() {
   const container = document.getElementById('progress-container');
   const status = document.getElementById('status-text');
 
-  const selectedVersion = document.getElementById('version-select') ? document.getElementById('version-select').value : "1.21.11 Fabric";
-  const selectedRam = document.getElementById('ram-select') ? document.getElementById('ram-select').value : "4096";
+  const selectedRam = document.getElementById('ram-select').value;
   const installPath = document.getElementById('install-path').value;
 
   btn.style.display = 'none';
@@ -342,7 +333,7 @@ function playGame() {
       status.innerText = 'Запуск клиента...';
       
       if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage(`START_MINECRAFT|${selectedVersion}|${selectedRam}|${installPath}`);
+        window.chrome.webview.postMessage(`START_MINECRAFT|1.21.11 Fabric|${selectedRam}|${installPath}`);
       } else {
         alert("Играть можно только через GarmoniaLauncher.exe!");
       }
