@@ -536,6 +536,7 @@ function buyPlan(title, price) {
   document.getElementById('buy-modal-title').innerText = title;
   document.getElementById('buy-modal-price').innerText = price + ' ₽';
   document.getElementById('promo-input').value = '';
+  document.getElementById('buy-modal-desc').innerHTML = `Чтобы купить, напишите в Discord:`;
   hideMsg(document.getElementById('promo-msg-modal'));
   document.getElementById('buy-modal').classList.add('active');
 }
@@ -547,10 +548,18 @@ async function applyPromo() {
   const priceEl = document.getElementById('buy-modal-price');
   hideMsg(msg);
   
-  if (!code) { currentBuyItem.finalPrice = currentBuyItem.price; currentBuyItem.promo = null; priceEl.innerText = currentBuyItem.price + ' ₽'; return; }
+  if (!code) { 
+    currentBuyItem.finalPrice = currentBuyItem.price; 
+    currentBuyItem.promo = null; 
+    priceEl.innerText = currentBuyItem.price + ' ₽'; 
+    document.getElementById('buy-modal-desc').innerHTML = `Чтобы купить, напишите в Discord:`;
+    return; 
+  }
   
   try {
-    const data = await api('/api/promo/validate', { method: 'POST', body: JSON.stringify({ code }) });
+    // ВОТ ЗДЕСЬ БЫЛА ОШИБКА, ТЕПЕРЬ ПУТЬ ПРАВИЛЬНЫЙ
+    const data = await api('/promo/validate', { method: 'POST', body: JSON.stringify({ code }) });
+    
     const discountAmount = Math.floor(currentBuyItem.price * (data.discount / 100));
     currentBuyItem.finalPrice = currentBuyItem.price - discountAmount;
     currentBuyItem.promo = data.code;
@@ -561,6 +570,7 @@ async function applyPromo() {
   } catch (e) {
     currentBuyItem.finalPrice = currentBuyItem.price; currentBuyItem.promo = null;
     priceEl.innerText = currentBuyItem.price + ' ₽';
+    document.getElementById('buy-modal-desc').innerHTML = `Чтобы купить, напишите в Discord:`;
     showMsg(msg, e.message, 'err');
   }
 }
