@@ -53,6 +53,9 @@ function schema(dialect) {
     )${suf}`,
     `CREATE TABLE IF NOT EXISTS settings (
       key_name ${vc(64)} PRIMARY KEY, value TEXT
+    )${suf}`,
+    `CREATE TABLE IF NOT EXISTS client_mods (
+      id ${auto}, mod_name ${vc(255)} NOT NULL, mod_url TEXT NOT NULL
     )${suf}`
   ];
 }
@@ -209,6 +212,10 @@ app.get('/api/client/mod_url', wrap(async (req, res) => {
   res.json({ url: setting ? setting.value : '' });
 }));
 
+app.get('/api/client/mods', wrap(async (req, res) => {
+  res.json(await db.all('SELECT * FROM client_mods ORDER BY id ASC'));
+}));
+
 // --- API ДЛЯ АДМИНКИ ---
 app.get('/api/admin/users', auth, adminOnly, wrap(async (req, res) => {
   res.json((await db.all('SELECT * FROM users ORDER BY uid ASC')).map(publicUser));
@@ -300,13 +307,28 @@ app.delete('/api/admin/promos/:id', auth, adminOnly, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Маршрут для сохранения ссылки на мод (ТОЛЬКО ДЛЯ UID 1)
+// Маршрут для сохранения ссылки на основной клиент
 app.post('/api/admin/settings/mod_url', auth, wrap(async (req, res) => {
-  if (req.user.uid !== 1) {
-    return res.status(403).json({ error: 'Только создатель (UID 1) может менять ссылку' });
-  }
+  if (req.user.uid !== 1) return res.status(403).json({ error: 'Только создатель (UID 1) может менять ссылку' });
   const { url } = req.body;
   await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'mod_url']);
+  res.json({ ok: true });
+}));
+
+// Маршруты для модов
+app.get('/api/admin/mods', auth, adminOnly, wrap(async (req, res) => {
+  res.json(await db.all('SELECT * FROM client_mods ORDER BY id DESC'));
+}));
+
+app.post('/api/admin/mods', auth, adminOnly, wrap(async (req, res) => {
+  const { name, url } = req.body;
+  if (!url) return res.status(400).json({ error: 'Ссылка пустая' });
+  await db.run('INSERT INTO client_mods (mod_name, mod_url) VALUES (?, ?)', [name || 'mod.jar', url]);
+  res.json({ ok: true });
+}));
+
+app.delete('/api/admin/mods/:id', auth, adminOnly, wrap(async (req, res) => {
+  await db.run('DELETE FROM client_mods WHERE id = ?', [parseInt(req.params.id, 10)]);
   res.json({ ok: true });
 }));
 
