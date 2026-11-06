@@ -20,6 +20,10 @@ const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch
 
 // --- СКРЫТЫЙ МАРШРУТ ДЛЯ ЛАУНЧЕРА ---
 app.get('/launcher', (req, res) => {
+  const userAgent = req.headers['user-agent'] || '';
+  if (!userAgent.includes('GarmoniaLauncher')) {
+    return res.status(404).send('Not Found');
+  }
   res.sendFile(path.join(__dirname, 'launcher.html'));
 });
 
@@ -46,6 +50,9 @@ function schema(dialect) {
     `CREATE TABLE IF NOT EXISTS promos (
       id ${auto}, code ${vc(64)} NOT NULL UNIQUE, discount INT NOT NULL,
       max_uses INT NOT NULL DEFAULT 100, uses INT NOT NULL DEFAULT 0
+    )${suf}`,
+    `CREATE TABLE IF NOT EXISTS settings (
+      key_name ${vc(64)} PRIMARY KEY, value TEXT
     )${suf}`
   ];
 }
@@ -53,10 +60,15 @@ function schema(dialect) {
 async function initDb() {
   for (const sql of schema(db.dialect)) await db.exec(sql);
 
-  // Безопасное обновление старой таблицы users
   try { await db.exec('ALTER TABLE users ADD COLUMN is_banned INT NOT NULL DEFAULT 0'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(255) NULL'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN hwid VARCHAR(64) NULL'); } catch(e) {}
+
+  // Создаем дефолтную ссылку на мод, если ее нет
+  const modUrlExists = await db.get('SELECT value FROM settings WHERE key_name = ?', ['mod_url']);
+  if (!modUrlExists) {
+    await db.run('INSERT INTO settings (key_name, value) VALUES (?, ?)', ['mod_url', 'https://example.com/garmonia-mod.jar']);
+  }
 
   const exists = await db.get('SELECT uid FROM users WHERE username_lower = ?', [ADMIN_USERNAME.toLowerCase()]);
   if (!exists) {
@@ -64,7 +76,6 @@ async function initDb() {
       'INSERT INTO users (username, username_lower, password_hash, role, sub_expires_at, hwid_resets, created_at, is_banned) VALUES (?,?,?,?,?,?,?,?)',
       [ADMIN_USERNAME, ADMIN_USERNAME.toLowerCase(), bcrypt.hashSync(ADMIN_PASSWORD, 10), 'owner', 0, 0, now(), 0]
     );
-    console.log(`[seed] Создан владелец: ${ADMIN_USERNAME}`);
   }
 }
 
@@ -107,7 +118,7 @@ function newKeyCode() {
   return 'GARM-' + hex.match(/.{1,4}/g).join('-');
 }
 
-// --- API ДЛЯ САЙТА ---
+// --- API ---
 app.post('/api/register', wrap(async (req, res) => {
   const { username, password } = req.body || {};
   if (typeof username !== 'string' || typeof password !== 'string') return res.status(400).json({ error: 'Некорректные данные' });
@@ -130,11 +141,7 @@ app.post('/api/login', wrap(async (req, res) => {
   if (typeof username !== 'string' || typeof password !== 'string') return res.status(400).json({ error: 'Некорректные данные' });
   const user = await db.get('SELECT * FROM users WHERE username_lower = ?', [username.trim().toLowerCase()]);
   if (!user || !bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'Неверный логин или пароль' });
-  
-  if (user.is_banned === 1) {
-      return res.status(403).json({ error: `Вы забанены. Причина: ${user.ban_reason || 'Не указана'}` });
-  }
-
+  if (user.is_banned === 1) return res.status(403).json({ error: `Вы забанены. Причина: ${user.ban_reason || 'Не указана'}` });
   res.json({ token: await createSession(user.uid), user: publicUser(user) });
 }));
 
@@ -180,33 +187,27 @@ app.post('/api/promo/validate', wrap(async (req, res) => {
   res.json({ code: promo.code, discount: promo.discount });
 }));
 
-// --- API ДЛЯ ЛАУНЧЕРА (Вход) ---
+// --- API ДЛЯ ЛАУНЧЕРА ---
 app.post('/api/client/auth', wrap(async (req, res) => {
   const { username, password, hwid } = req.body;
   const user = await db.get('SELECT * FROM users WHERE username_lower = ?', [username?.toLowerCase()]);
   
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    return res.status(401).json({ error: 'Неверный логин или пароль' });
-  }
-  
-  if (user.is_banned === 1) {
-    return res.status(403).json({ error: `Вы забанены. Причина: ${user.ban_reason || 'Не указана'}` });
-  }
+  if (!user || !bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'Неверный логин или пароль' });
+  if (user.is_banned === 1) return res.status(403).json({ error: `Вы забанены. Причина: ${user.ban_reason || 'Не указана'}` });
+  if (Number(user.sub_expires_at) <= Date.now()) return res.status(403).json({ error: 'У вас нет активной подписки. Купите её на сайте.' });
 
-  const subExp = Number(user.sub_expires_at) || 0;
-  if (subExp <= Date.now()) {
-    return res.status(403).json({ error: 'У вас нет активной подписки. Купите её на сайте.' });
-  }
-
-  // Проверка HWID (привязка к ПК)
   if (user.hwid && user.hwid !== hwid) {
     return res.status(403).json({ error: 'Аккаунт привязан к другому ПК. Сбросьте HWID в кабинете.' });
   } else if (!user.hwid) {
     await db.run('UPDATE users SET hwid = ? WHERE uid = ?', [hwid, user.uid]);
   }
 
-  // ВАЖНО: Отдаем uid и role для проверки в лаунчере
-  res.json({ success: true, message: 'Успешный вход', uid: user.uid, role: user.role });
+  res.json({ success: true, uid: user.uid, role: user.role });
+}));
+
+app.get('/api/client/mod_url', wrap(async (req, res) => {
+  const setting = await db.get('SELECT value FROM settings WHERE key_name = ?', ['mod_url']);
+  res.json({ url: setting ? setting.value : '' });
 }));
 
 // --- API ДЛЯ АДМИНКИ ---
@@ -242,7 +243,6 @@ app.post('/api/admin/users/:uid/ban', auth, adminOnly, wrap(async (req, res) => 
   const uid = parseInt(req.params.uid, 10);
   const { ban, reason } = req.body;
   if (uid === req.user.uid) return res.status(400).json({ error: 'Нельзя забанить себя' });
-  
   await db.run('UPDATE users SET is_banned = ?, ban_reason = ? WHERE uid = ?', [ban ? 1 : 0, reason || null, uid]);
   if (ban) await db.run('DELETE FROM sessions WHERE uid = ?', [uid]);
   res.json({ ok: true });
@@ -290,17 +290,21 @@ app.post('/api/admin/promos', auth, adminOnly, wrap(async (req, res) => {
   const max_uses = parseInt(req.body?.max_uses, 10) || 100;
   if (!code || code.length < 3) return res.status(400).json({ error: 'Код слишком короткий' });
   if (discount < 1 || discount > 99) return res.status(400).json({ error: 'Скидка от 1 до 99%' });
-  
   try {
     await db.run('INSERT INTO promos (code, discount, max_uses) VALUES (?,?,?)', [code, discount, max_uses]);
     res.json({ ok: true });
-  } catch(e) {
-    res.status(400).json({ error: 'Промокод уже существует' });
-  }
+  } catch(e) { res.status(400).json({ error: 'Промокод уже существует' }); }
 }));
 
 app.delete('/api/admin/promos/:id', auth, adminOnly, wrap(async (req, res) => {
   await db.run('DELETE FROM promos WHERE id = ?', [parseInt(req.params.id, 10)]);
+  res.json({ ok: true });
+}));
+
+// Маршрут для сохранения ссылки на мод
+app.post('/api/admin/settings/mod_url', auth, adminOnly, wrap(async (req, res) => {
+  const { url } = req.body;
+  await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'mod_url']);
   res.json({ ok: true });
 }));
 
