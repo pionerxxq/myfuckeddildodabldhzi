@@ -251,6 +251,7 @@
         <div class="tab" data-tab="roles" onclick="switchAdminTab('roles')">Выдача ролей</div>
         <div class="tab" data-tab="keys" onclick="switchAdminTab('keys')">Ключи</div>
         <div class="tab" data-tab="promos" onclick="switchAdminTab('promos')">Промокоды</div>
+        <div class="tab" data-tab="settings" id="tab-settings" onclick="switchAdminTab('settings')">Настройки</div>
       </div>
 
       <div id="admin-tab-users">
@@ -296,6 +297,17 @@
         <div id="promo-list" class="key-list"></div>
       </div>
 
+      <div id="admin-tab-settings" style="display: none;">
+        <div class="form-row">
+          <div class="form-group" style="flex: 3;">
+            <label>Ссылка на скачивание клиента (.jar / .zip)</label>
+            <input id="mod-url" class="form-control" placeholder="https://example.com/client.jar">
+          </div>
+          <button class="btn-action primary" style="padding: 14px 28px;" onclick="saveModUrl()">Сохранить</button>
+        </div>
+        <div id="settings-msg" class="msg"></div>
+      </div>
+
       <div style="margin-top: 24px;">
         <button class="btn-action secondary" onclick="switchPage('dashboard')">← В кабинет</button>
       </div>
@@ -306,15 +318,11 @@
     <div class="modal">
       <h3 id="buy-modal-title">Покупка</h3>
       <div class="price" id="buy-modal-price">—</div>
-      
       <div class="form-row" style="margin-bottom: 20px;">
-        <div class="form-group" style="flex: 2;">
-            <input id="promo-input" class="form-control" placeholder="Промокод" style="text-transform: uppercase;">
-        </div>
+        <div class="form-group" style="flex: 2;"><input id="promo-input" class="form-control" placeholder="Промокод" style="text-transform: uppercase;"></div>
         <button class="btn-action secondary" onclick="applyPromo()" style="flex: 1;">Применить</button>
       </div>
       <div id="promo-msg-modal" class="msg" style="margin-top: -10px; margin-bottom: 10px;"></div>
-
       <p id="buy-modal-desc">Чтобы купить, напишите в Discord:</p>
       <div class="discord-tag">
         <strong id="discord-username">d3ppr3ss1vefr1ck</strong>
@@ -389,6 +397,12 @@ function updateHeader() {
   if (state.user) {
     bL.style.display = 'none'; bD.style.display = 'block'; bO.style.display = 'block';
     bA.style.display = (state.user.role === 'owner' || state.user.role === 'admin') ? 'block' : 'none';
+    
+    // СКРЫВАЕМ ВКЛАДКУ НАСТРОЕК ДЛЯ ВСЕХ, КРОМЕ UID 1
+    const settingsTab = document.getElementById('tab-settings');
+    if (settingsTab) {
+      settingsTab.style.display = state.user.uid === 1 ? 'block' : 'none';
+    }
   } else {
     bL.style.display = 'block'; bD.style.display = 'none'; bA.style.display = 'none'; bO.style.display = 'none';
   }
@@ -445,7 +459,8 @@ async function redeemKey() {
 
 function switchAdminTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  ['users', 'roles', 'keys', 'promos'].forEach(t => document.getElementById('admin-tab-' + t).style.display = (t === tab) ? 'block' : 'none');
+  ['users', 'roles', 'keys', 'promos', 'settings'].forEach(t => document.getElementById('admin-tab-' + t).style.display = (t === tab) ? 'block' : 'none');
+  if (tab === 'settings') loadSettings();
 }
 async function loadAdmin() {
   try {
@@ -497,6 +512,22 @@ async function loadAdmin() {
       </div>
     `).join('') : '<p style="color:var(--text-sub);font-size:13px;">Промокодов нет.</p>';
   } catch(e) {}
+}
+
+async function loadSettings() {
+  try {
+    const data = await api('/client/mod_url');
+    document.getElementById('mod-url').value = data.url;
+  } catch (e) {}
+}
+
+async function saveModUrl() {
+  const msg = document.getElementById('settings-msg'); hideMsg(msg);
+  const url = document.getElementById('mod-url').value.trim();
+  try {
+    await api('/admin/settings/mod_url', { method: 'POST', body: JSON.stringify({ url }) });
+    showMsg(msg, 'Ссылка успешно сохранена', 'ok');
+  } catch (e) { showMsg(msg, e.message); }
 }
 
 async function changeUserRole(uid, role) {
@@ -570,7 +601,6 @@ async function applyPromo() {
   
   try {
     const data = await api('/promo/validate', { method: 'POST', body: JSON.stringify({ code }) });
-    
     const discountAmount = Math.floor(currentBuyItem.price * (data.discount / 100));
     currentBuyItem.finalPrice = currentBuyItem.price - discountAmount;
     currentBuyItem.promo = data.code;
