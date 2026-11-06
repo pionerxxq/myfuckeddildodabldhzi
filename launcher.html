@@ -4,31 +4,36 @@
 <meta charset="UTF-8">
 <title>Garmonia Launcher</title>
 <style>
+  * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 0; height: 100vh; background: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/56/Three_biomes_concept_art.jpg/revision/latest?cb=20211024124434') center/cover no-repeat;
+    margin: 0; padding: 0; height: 100vh; width: 100vw; background: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/56/Three_biomes_concept_art.jpg/revision/latest?cb=20211024124434') center/cover no-repeat;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center;
     color: white; overflow: hidden; user-select: none;
   }
   .overlay { position: absolute; inset: 0; background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(8px); z-index: 1; }
+  
+  /* Лаунчер занимает всю область */
   .launcher-box {
-    position: relative; z-index: 2; width: 900px; height: 550px; background: #111; border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px; display: flex; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;
+    position: relative; z-index: 2; width: 100%; height: 100%;
+    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    display: flex; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;
   }
   
   /* Левая панель */
   .login-panel { 
-    width: 350px; padding: 40px; background: #0a0a0a; 
-    display: flex; flex-direction: column; justify-content: space-between; /* Распределяем элементы */
+    width: 350px; padding: 30px; background: #0a0a0a; 
+    display: flex; flex-direction: column; justify-content: space-between; 
+    border-right: 1px solid #222;
   }
   .login-top { flex: 1; display: flex; flex-direction: column; justify-content: center; }
   
-  .logo { font-size: 32px; font-weight: 900; color: #38bdf8; margin-bottom: 30px; text-align: center; letter-spacing: 2px; }
+  .logo { font-size: 32px; font-weight: 900; color: #38bdf8; margin-bottom: 30px; text-align: center; letter-spacing: 2px; text-shadow: 0 0 20px rgba(56,189,248,0.3); }
   .form-group { margin-bottom: 15px; }
   input {
-    width: 100%; box-sizing: border-box; padding: 14px; background: #161616; border: 1px solid #333;
+    width: 100%; padding: 14px; background: #161616; border: 1px solid #333;
     border-radius: 10px; color: white; font-size: 14px; outline: none; transition: 0.3s;
   }
-  input:focus { border-color: #38bdf8; }
+  input:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.2); }
   .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; }
   .btn-login { background: #38bdf8; color: #000; margin-top: 10px; }
   .btn-login:hover { background: #0ea5e9; }
@@ -38,22 +43,32 @@
   .login-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666; border-top: 1px solid #222; padding-top: 15px; }
   .login-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
   .login-footer a:hover { color: #38bdf8; }
-  .version { color: #444; }
 
   /* Правая панель */
-  .main-panel { flex: 1; padding: 40px; display: flex; flex-direction: column; position: relative; }
-  .news-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; color: #fff; }
-  .news-box { flex: 1; background: #161616; border: 1px solid #222; border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #aaa; line-height: 1.6; }
+  .main-panel { flex: 1; padding: 30px; display: flex; flex-direction: column; position: relative; }
+  .news-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: #fff; }
   
-  .bottom-area { margin-top: 30px; display: flex; flex-direction: column; align-items: center; }
-  .progress-container { width: 100%; height: 6px; background: #222; border-radius: 3px; margin-bottom: 20px; overflow: hidden; display: none; }
-  .progress-bar { height: 100%; width: 0%; background: #38bdf8; transition: width 0.3s; }
+  .news-box { flex: 1; background: #161616; border: 1px solid #222; border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #aaa; line-height: 1.6; margin-bottom: 20px; }
+  .news-box b { color: #fff; }
+  
+  /* Кнопки быстрого доступа */
+  .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .quick-btn {
+    background: #1a1a1a; border: 1px solid #333; color: #ccc; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; transition: all 0.2s;
+  }
+  .quick-btn:hover { background: #222; border-color: #38bdf8; color: #38bdf8; }
+
+  .bottom-area { display: flex; flex-direction: column; align-items: center; }
+  .progress-container { width: 100%; height: 6px; background: #222; border-radius: 3px; margin-bottom: 15px; overflow: hidden; display: none; }
+  .progress-bar { height: 100%; width: 0%; background: #38bdf8; transition: width 0.3s; box-shadow: 0 0 10px #38bdf8; }
   .btn-play {
-    background: #22c55e; color: #000; font-size: 18px; padding: 16px 60px; border-radius: 12px;
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); display: none;
+    width: 100%; background: #22c55e; color: #000; font-size: 18px; padding: 16px; border-radius: 12px;
+    font-weight: 900; letter-spacing: 1px; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); display: none;
   }
   .btn-play:hover { background: #16a34a; }
-  .status-text { font-size: 13px; color: #888; margin-top: 10px; }
+  .status-text { font-size: 13px; color: #888; margin-top: 10px; font-weight: 500; }
 
   .spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #38bdf8; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -74,7 +89,7 @@
         <div class="error" id="login-error"></div>
       </div>
       <div class="login-footer">
-        <a href="https://garmoniadic.up.railway.app" target="_blank">Сайт</a>
+        <a href="https://garmoniadlc.up.railway.app" target="_blank">Сайт</a>
         <a href="https://discord.com/app" target="_blank">Discord</a>
         <span class="version">v1.0.4</span>
       </div>
@@ -82,13 +97,20 @@
 
     <!-- Главная панель -->
     <div class="main-panel" id="main-panel" style="display: none;">
-      <div class="news-title">Добро пожаловать, <span id="user-name" style="color:#38bdf8"></span>!</div>
+      <div class="news-title">Привет, <span id="user-name" style="color:#38bdf8"></span>!</div>
+      
+      <!-- Быстрые ссылки -->
+      <div class="quick-links">
+        <a href="https://garmoniadlc.up.railway.app" target="_blank" class="quick-btn">Личный кабинет</a>
+        <a href="https://garmoniadlc.up.railway.app/#pricing" target="_blank" class="quick-btn">Купить подписку</a>
+      </div>
+
       <div class="news-box">
-        <b style="color:#fff;">Обновление 1.0.4</b><br>
-        - Улучшена производительность.<br>
-        - Исправлены баги с рендером.<br>
-        - Добавлены новые функции.<br><br>
-        <i style="color:#888;">Нажмите "Играть", чтобы начать.</i>
+        <b>📢 Обновление 1.0.4</b><br>
+        - Оптимизация рендера в тяжелых чанках.<br>
+        - Исправлен вылет при загрузке миров.<br>
+        - Добавлены новые кастомные плащи.<br><br>
+        <i style="color:#888;">Нажмите "Играть", чтобы запустить клиент.</i>
       </div>
       
       <div class="bottom-area">
@@ -96,7 +118,7 @@
           <div class="progress-bar" id="progress-bar"></div>
         </div>
         <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
-        <div class="status-text" id="status-text">Готов к запуску</div>
+        <div class="status-text" id="status-text">Система готова к запуску</div>
       </div>
     </div>
 
@@ -120,7 +142,6 @@ async function login() {
   const err = document.getElementById('login-error');
   const btn = document.getElementById('login-btn');
   const spinner = document.getElementById('login-spinner');
-  const footer = document.querySelector('.login-footer');
 
   if (!u || !p) {
     err.innerText = "Введите логин и пароль"; err.style.display = 'block'; return;
