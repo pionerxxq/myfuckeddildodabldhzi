@@ -18,6 +18,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 const now = () => Date.now();
 const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
+// --- СКРЫТЫЙ МАРШРУТ ДЛЯ ЛАУНЧЕРА ---
+app.get('/launcher', (req, res) => {
+  const userAgent = req.headers['user-agent'] || '';
+  // Если заходят из обычного браузера (нет слова GarmoniaLauncher) — даем 404
+  if (!userAgent.includes('GarmoniaLauncher')) {
+    return res.status(404).send('Not Found');
+  }
+  // Отдаем файл, который лежит в корне проекта
+  res.sendFile(path.join(__dirname, 'launcher.html'));
+});
+// ------------------------------------
+
 function schema(dialect) {
   const auto = dialect === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT PRIMARY KEY AUTO_INCREMENT';
   const big = dialect === 'sqlite' ? 'INTEGER' : 'BIGINT';
@@ -29,7 +41,7 @@ function schema(dialect) {
       uid ${auto}, username ${vc(64)} NOT NULL UNIQUE, username_lower ${vc(64)} NOT NULL UNIQUE,
       password_hash ${vc(255)} NOT NULL, role ${vc(16)} NOT NULL DEFAULT 'player',
       sub_expires_at ${big} NOT NULL DEFAULT 0, hwid_resets INT NOT NULL DEFAULT 0, created_at ${big} NOT NULL,
-      is_banned INT NOT NULL DEFAULT 0, ban_reason ${vc(255)} NULL
+      is_banned INT NOT NULL DEFAULT 0, ban_reason ${vc(255)} NULL, hwid ${vc(64)} NULL
     )${suf}`,
     `CREATE TABLE IF NOT EXISTS sessions (
       token ${vc(128)} PRIMARY KEY, uid INT NOT NULL, expires_at ${big} NOT NULL
@@ -51,6 +63,7 @@ async function initDb() {
   // Безопасное обновление старой таблицы users
   try { await db.exec('ALTER TABLE users ADD COLUMN is_banned INT NOT NULL DEFAULT 0'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(255) NULL'); } catch(e) {}
+  try { await db.exec('ALTER TABLE users ADD COLUMN hwid VARCHAR(64) NULL'); } catch(e) {}
 
   const exists = await db.get('SELECT uid FROM users WHERE username_lower = ?', [ADMIN_USERNAME.toLowerCase()]);
   if (!exists) {
@@ -101,6 +114,7 @@ function newKeyCode() {
   return 'GARM-' + hex.match(/.{1,4}/g).join('-');
 }
 
+// --- API ДЛЯ САЙТА ---
 app.post('/api/register', wrap(async (req, res) => {
   const { username, password } = req.body || {};
   if (typeof username !== 'string' || typeof password !== 'string') return res.status(400).json({ error: 'Некорректные данные' });
@@ -140,6 +154,16 @@ app.get('/api/me', auth, (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
+app.post('/api/hwid/reset', auth, wrap(async (req, res) => {
+  if (req.user.hwid_resets > 0) {
+    await db.run('UPDATE users SET hwid = NULL, hwid_resets = hwid_resets - 1 WHERE uid = ?', [req.user.uid]);
+    const updated = await db.get('SELECT * FROM users WHERE uid = ?', [req.user.uid]);
+    res.json({ ok: true, user: publicUser(updated) });
+  } else {
+    res.status(400).json({ error: 'У вас нет доступных сбросов HWID' });
+  }
+}));
+
 app.post('/api/redeem', auth, wrap(async (req, res) => {
   if (req.user.is_banned === 1) return res.status(403).json({ error: 'Действие запрещено' });
   const key = String(req.body?.key || '').trim().toUpperCase();
@@ -163,6 +187,35 @@ app.post('/api/promo/validate', wrap(async (req, res) => {
   res.json({ code: promo.code, discount: promo.discount });
 }));
 
+// --- API ДЛЯ ЛАУНЧЕРА (Вход) ---
+app.post('/api/client/auth', wrap(async (req, res) => {
+  const { username, password, hwid } = req.body;
+  const user = await db.get('SELECT * FROM users WHERE username_lower = ?', [username?.toLowerCase()]);
+  
+  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    return res.status(401).json({ error: 'Неверный логин или пароль' });
+  }
+  
+  if (user.is_banned === 1) {
+    return res.status(403).json({ error: `Вы забанены. Причина: ${user.ban_reason || 'Не указана'}` });
+  }
+
+  const subExp = Number(user.sub_expires_at) || 0;
+  if (subExp <= Date.now()) {
+    return res.status(403).json({ error: 'У вас нет активной подписки. Купите её на сайте.' });
+  }
+
+  // Проверка HWID (привязка к ПК)
+  if (user.hwid && user.hwid !== hwid) {
+    return res.status(403).json({ error: 'Аккаунт привязан к другому ПК. Сбросьте HWID в личном кабинете на сайте.' });
+  } else if (!user.hwid) {
+    await db.run('UPDATE users SET hwid = ? WHERE uid = ?', [hwid, user.uid]);
+  }
+
+  res.json({ success: true, message: 'Успешный вход' });
+}));
+
+// --- API ДЛЯ АДМИНКИ ---
 app.get('/api/admin/users', auth, adminOnly, wrap(async (req, res) => {
   res.json((await db.all('SELECT * FROM users ORDER BY uid ASC')).map(publicUser));
 }));
@@ -175,6 +228,12 @@ app.post('/api/admin/users/:uid/sub', auth, adminOnly, wrap(async (req, res) => 
   const newExp = days === 0 ? 0 : Math.max(now(), Number(user.sub_expires_at) || 0) + days * DAY;
   await db.run('UPDATE users SET sub_expires_at = ? WHERE uid = ?', [newExp, uid]);
   res.json({ user: publicUser(await db.get('SELECT * FROM users WHERE uid = ?', [uid])) });
+}));
+
+app.post('/api/admin/users/:uid/hwid', auth, adminOnly, wrap(async (req, res) => {
+  const uid = parseInt(req.params.uid, 10);
+  await db.run('UPDATE users SET hwid_resets = hwid_resets + 1 WHERE uid = ?', [uid]);
+  res.json({ ok: true });
 }));
 
 app.post('/api/admin/users/:uid/role', auth, adminOnly, wrap(async (req, res) => {
