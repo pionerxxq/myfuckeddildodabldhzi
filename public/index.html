@@ -225,11 +225,12 @@
           <div class="data-row"><div class="data-label">Имя пользователя</div><div class="data-value" id="dash-info-name">—</div></div>
           <div class="data-row"><div class="data-label">UID</div><div class="data-value" id="dash-info-uid">—</div></div>
           <div class="data-row"><div class="data-label">Роль</div><div class="data-value" id="dash-info-role">—</div></div>
+          <div class="data-row"><div class="data-label">Доступно сбросов HWID</div><div class="data-value" id="dash-info-hwid">0</div></div>
           <div class="data-row"><div class="data-label">Подписка</div><div class="data-value" id="dash-info-sub">—</div></div>
         </div>
         <div class="action-buttons">
           <button class="btn-action primary" onclick="goToProducts()">Купить подписку</button>
-          <button class="btn-action secondary">Скачать лаунчер</button>
+          <button class="btn-action secondary" onclick="resetHwid()">Сбросить HWID</button>
         </div>
         <div class="dash-main-header" style="margin-top: 8px;"><h2>Активация ключа</h2></div>
         <div class="form-row" style="margin-top: 16px;">
@@ -418,10 +419,19 @@ function renderDashboard() {
   document.getElementById('dash-info-name').innerText = u.username;
   document.getElementById('dash-info-uid').innerText = u.uid;
   document.getElementById('dash-info-role').innerHTML = `<span style="color:${roleColors[u.role] || '#fff'}; font-weight:bold;">${roleNames[u.role] || u.role}</span>`;
+  document.getElementById('dash-info-hwid').innerText = u.hwidResets || 0;
   const s = formatSub(u.subExpiresAt);
   document.getElementById('dash-info-sub').innerText = s.text;
   document.getElementById('dash-info-sub').style.color = s.color;
   document.getElementById('dash-avatar').style.backgroundImage = `url('https://mc-heads.net/avatar/${encodeURIComponent(u.username)}/64')`;
+}
+
+async function resetHwid() {
+  if (!confirm('Вы уверены? Это потратит 1 сброс HWID.')) return;
+  try {
+    const data = await api('/hwid/reset', { method: 'POST' });
+    state.user = data.user; renderDashboard(); showToast('HWID сброшен');
+  } catch (e) { alert(e.message); }
 }
 
 async function redeemKey() {
@@ -449,6 +459,7 @@ async function loadAdmin() {
         <td style="color:${s.color}">${s.text}</td>
         <td>
           <button class="mini-btn" onclick="promptAddSub(${u.uid})">+ подписка</button>
+          <button class="mini-btn" onclick="giveHwid(${u.uid})">+HWID</button>
           ${u.role !== 'owner' ? `<button class="mini-btn danger" onclick="banUser(${u.uid}, ${u.isBanned})">${u.isBanned ? 'Разбанить' : 'Забанить'}</button>` : ''}
           ${u.role !== 'owner' ? `<button class="mini-btn danger" style="background:#333;color:#fff;" onclick="deleteUser(${u.uid})">X</button>` : ''}
         </td>
@@ -495,6 +506,9 @@ async function changeUserRole(uid, role) {
 async function promptAddSub(uid) {
   const v = prompt('Дней подписки (0 — обнулить):'); if (v === null) return;
   try { await api('/admin/users/' + uid + '/sub', { method: 'POST', body: JSON.stringify({ days: Number(v) }) }); await loadAdmin(); showToast('Подписка обновлена'); } catch (e) { alert(e.message); }
+}
+async function giveHwid(uid) {
+  try { await api('/admin/users/' + uid + '/hwid', { method: 'POST' }); await loadAdmin(); showToast('Сброс HWID выдан'); } catch (e) { alert(e.message); }
 }
 async function banUser(uid, isBanned) {
   if (isBanned) {
@@ -557,7 +571,6 @@ async function applyPromo() {
   }
   
   try {
-    // ВОТ ЗДЕСЬ БЫЛА ОШИБКА, ТЕПЕРЬ ПУТЬ ПРАВИЛЬНЫЙ
     const data = await api('/promo/validate', { method: 'POST', body: JSON.stringify({ code }) });
     
     const discountAmount = Math.floor(currentBuyItem.price * (data.discount / 100));
