@@ -18,14 +18,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 const now = () => Date.now();
 const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// --- СКРЫТЫЙ МАРШРУТ ДЛЯ ЛАУНЧЕРА ---
+// --- СКРЫТЫЙ МАРШРУТ ДЛЯ ЛАУНЧЕРА (Проверка User-Agent отключена для теста) ---
 app.get('/launcher', (req, res) => {
-  const userAgent = req.headers['user-agent'] || '';
-  // Если заходят из обычного браузера (нет слова GarmoniaLauncher) — даем 404
-  if (!userAgent.includes('GarmoniaLauncher')) {
-    return res.status(404).send('Not Found');
-  }
-  // Отдаем файл, который лежит в корне проекта
   res.sendFile(path.join(__dirname, 'launcher.html'));
 });
 // ------------------------------------
@@ -60,7 +54,6 @@ function schema(dialect) {
 async function initDb() {
   for (const sql of schema(db.dialect)) await db.exec(sql);
 
-  // Безопасное обновление старой таблицы users
   try { await db.exec('ALTER TABLE users ADD COLUMN is_banned INT NOT NULL DEFAULT 0'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(255) NULL'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN hwid VARCHAR(64) NULL'); } catch(e) {}
@@ -114,7 +107,6 @@ function newKeyCode() {
   return 'GARM-' + hex.match(/.{1,4}/g).join('-');
 }
 
-// --- API ДЛЯ САЙТА ---
 app.post('/api/register', wrap(async (req, res) => {
   const { username, password } = req.body || {};
   if (typeof username !== 'string' || typeof password !== 'string') return res.status(400).json({ error: 'Некорректные данные' });
@@ -187,7 +179,6 @@ app.post('/api/promo/validate', wrap(async (req, res) => {
   res.json({ code: promo.code, discount: promo.discount });
 }));
 
-// --- API ДЛЯ ЛАУНЧЕРА (Вход) ---
 app.post('/api/client/auth', wrap(async (req, res) => {
   const { username, password, hwid } = req.body;
   const user = await db.get('SELECT * FROM users WHERE username_lower = ?', [username?.toLowerCase()]);
@@ -205,9 +196,8 @@ app.post('/api/client/auth', wrap(async (req, res) => {
     return res.status(403).json({ error: 'У вас нет активной подписки. Купите её на сайте.' });
   }
 
-  // Проверка HWID (привязка к ПК)
   if (user.hwid && user.hwid !== hwid) {
-    return res.status(403).json({ error: 'Аккаунт привязан к другому ПК. Сбросьте HWID в личном кабинете на сайте.' });
+    return res.status(403).json({ error: 'Аккаунт привязан к другому ПК. Сбросьте HWID в кабинете.' });
   } else if (!user.hwid) {
     await db.run('UPDATE users SET hwid = ? WHERE uid = ?', [hwid, user.uid]);
   }
@@ -215,7 +205,6 @@ app.post('/api/client/auth', wrap(async (req, res) => {
   res.json({ success: true, message: 'Успешный вход' });
 }));
 
-// --- API ДЛЯ АДМИНКИ ---
 app.get('/api/admin/users', auth, adminOnly, wrap(async (req, res) => {
   res.json((await db.all('SELECT * FROM users ORDER BY uid ASC')).map(publicUser));
 }));
