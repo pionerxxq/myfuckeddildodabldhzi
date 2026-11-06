@@ -152,7 +152,6 @@
           <i style="color:#888;">Скачайте клиент и нажмите "Играть".</i>
         </div>
 
-        <!-- НАСТРОЙКИ (Только папка и RAM) -->
         <div class="settings-box">
           <div class="setting-item">
             <label>Папка установки (1.21.11)</label>
@@ -178,7 +177,6 @@
             <div class="progress-bar" id="progress-bar"></div>
           </div>
           
-          <!-- Кнопка скачивания (видна всем) -->
           <button class="btn btn-download" id="download-btn" onclick="downloadGame()">СКАЧАТЬ КЛИЕНТ</button>
           
           <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
@@ -250,7 +248,6 @@ async function login() {
     document.getElementById('main-panel').style.display = 'flex';
     document.getElementById('user-name').innerText = u;
     
-    // Показываем кнопки скачивания и игры ВСЕМ
     document.getElementById('download-btn').style.display = 'block';
     document.getElementById('play-btn').style.display = 'block';
 
@@ -289,7 +286,6 @@ async function downloadGame() {
         status.innerText = 'Установка завершена!';
         
         if (window.chrome && window.chrome.webview) {
-          // Отправляем C#: команду, путь и ссылку
           window.chrome.webview.postMessage(`DOWNLOAD_MINECRAFT|${path}|${data.url}`);
         }
         
