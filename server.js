@@ -67,9 +67,15 @@ async function initDb() {
   try { await db.exec('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(255) NULL'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN hwid VARCHAR(64) NULL'); } catch(e) {}
 
+  // Дефолтные настройки
   const modUrlExists = await db.get('SELECT value FROM settings WHERE key_name = ?', ['mod_url']);
   if (!modUrlExists) {
     await db.run('INSERT INTO settings (key_name, value) VALUES (?, ?)', ['mod_url', 'https://example.com/garmonia-mod.jar']);
+  }
+
+  const launcherUrlExists = await db.get('SELECT value FROM settings WHERE key_name = ?', ['launcher_url']);
+  if (!launcherUrlExists) {
+    await db.run('INSERT INTO settings (key_name, value) VALUES (?, ?)', ['launcher_url', 'https://example.com/launcher.exe']);
   }
 
   const exists = await db.get('SELECT uid FROM users WHERE username_lower = ?', [ADMIN_USERNAME.toLowerCase()]);
@@ -212,6 +218,11 @@ app.get('/api/client/mod_url', wrap(async (req, res) => {
   res.json({ url: setting ? setting.value : '' });
 }));
 
+app.get('/api/client/launcher_url', wrap(async (req, res) => {
+  const setting = await db.get('SELECT value FROM settings WHERE key_name = ?', ['launcher_url']);
+  res.json({ url: setting ? setting.value : '' });
+}));
+
 app.get('/api/client/mods', wrap(async (req, res) => {
   res.json(await db.all('SELECT * FROM client_mods ORDER BY id ASC'));
 }));
@@ -307,15 +318,20 @@ app.delete('/api/admin/promos/:id', auth, adminOnly, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Маршрут для сохранения ссылки на основной клиент
-app.post('/api/admin/settings/mod_url', auth, wrap(async (req, res) => {
-  if (req.user.uid !== 1) return res.status(403).json({ error: 'Только создатель (UID 1) может менять ссылку' });
+// Сохранение ссылок из админки
+app.post('/api/admin/settings/mod_url', auth, adminOnly, wrap(async (req, res) => {
   const { url } = req.body;
   await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'mod_url']);
   res.json({ ok: true });
 }));
 
-// Маршруты для модов
+app.post('/api/admin/settings/launcher_url', auth, adminOnly, wrap(async (req, res) => {
+  const { url } = req.body;
+  await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'launcher_url']);
+  res.json({ ok: true });
+}));
+
+// API для модов
 app.get('/api/admin/mods', auth, adminOnly, wrap(async (req, res) => {
   res.json(await db.all('SELECT * FROM client_mods ORDER BY id DESC'));
 }));
