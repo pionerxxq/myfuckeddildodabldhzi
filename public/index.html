@@ -12,7 +12,6 @@
     --accent-transparent: rgba(56, 189, 248, 0.15); --border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(22, 24, 29, 0.85); --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     
-    /* Новые цвета для админки */
     --admin-bg: #0a0a0c;
     --admin-sidebar: #111114;
     --admin-card: #16161a;
@@ -23,14 +22,10 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font); overflow-x: hidden; min-height: 100vh; padding-top: 90px; }
 
-  /* --- ГЛАВНЫЙ ХЕДЕР САЙТА --- */
   .global-header { position: fixed; top: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; padding: 0 20px; pointer-events: none; }
   .navbar { display: flex; align-items: center; justify-content: space-between; background: var(--nav-bg); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 999px; padding: 8px 10px 8px 24px; width: 100%; max-width: 1000px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); pointer-events: auto; }
-  
-  /* Измененный логотип в шапке */
   .logo { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; text-decoration: none; cursor: pointer; }
   .logo svg { width: 100%; height: 100%; }
-
   .nav-links { display: flex; gap: 20px; margin-left: 24px; }
   .nav-link { display: flex; align-items: center; gap: 6px; color: var(--text-sub); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s; cursor: pointer; }
   .nav-link:hover { color: var(--text-main); }
@@ -46,7 +41,6 @@
   .page.active { display: flex; flex-direction: column; min-height: calc(100vh - 90px); }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* --- ОСТАЛЬНЫЕ СТРАНИЦЫ (Landing, Auth) --- */
   #page-landing { position: relative; overflow: hidden; border-radius: 20px; margin: 0 20px 20px; }
   .bg-container { position: absolute; inset: 0; z-index: -1; background-color: #0b0c10; }
   .bg-image { width: 100%; height: 100%; background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/56/Three_biomes_concept_art.jpg/revision/latest?cb=20211024124434'); background-position: center; background-size: cover; filter: brightness(0.35) blur(2px) saturate(1.1); transform: scale(1.05); }
@@ -92,9 +86,6 @@
   .msg.err { display: block; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; }
   .msg.ok { display: block; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; }
 
-  /* ======================================================== */
-  /* ==================== ПРОФИЛЬ =========================== */
-  /* ======================================================== */
   #page-dashboard { padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
   .profile-container { display: flex; flex-direction: column; gap: 30px; width: 100%; }
   .profile-banner { position: relative; border-radius: 24px; overflow: hidden; background: #111; min-height: 200px; display: flex; align-items: center; padding: 40px; border: 1px solid var(--border); }
@@ -128,23 +119,17 @@
   .action-btn.danger { background: rgba(239, 68, 68, 0.05); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
   .action-btn.danger:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; }
 
-  /* ======================================================== */
-  /* ==================== АДМИНКА =========================== */
-  /* ======================================================== */
+  /* --- АДМИНКА --- */
   #page-admin { display: none; background-color: var(--admin-bg); min-height: calc(100vh - 90px); }
   #page-admin.active { display: flex; }
   .admin-layout { display: flex; width: 100%; max-width: 1500px; margin: 0 auto; min-height: calc(100vh - 90px); }
-  
-  /* Сайдбар */
   .admin-sidebar { width: 260px; background: var(--admin-sidebar); border-right: 1px solid var(--admin-border); display: flex; flex-direction: column; padding: 20px 0; }
   .admin-logo { display: flex; align-items: center; gap: 12px; padding: 0 20px 30px; font-size: 20px; font-weight: 900; color: #fff; }
   .admin-logo svg { width: 28px; height: 28px; }
   .admin-badge { background: rgba(255,255,255,0.1); color: #aaa; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600; letter-spacing: 0.5px; margin-left: auto; }
-  
   .lang-switch { display: flex; background: #1a1a20; border-radius: 8px; margin: 0 15px 20px; padding: 4px; }
   .lang-btn { flex: 1; text-align: center; padding: 8px; font-size: 12px; font-weight: 700; color: #888; border-radius: 6px; cursor: pointer; transition: 0.2s; }
   .lang-btn.active { background: var(--admin-blue); color: #fff; }
-
   .admin-nav { display: flex; flex-direction: column; gap: 4px; padding: 0 15px; flex: 1; }
   .admin-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #888; font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
   .admin-nav-item:hover { background: rgba(255,255,255,0.03); color: #fff; }
@@ -152,25 +137,18 @@
   .admin-nav-item.active svg { stroke: var(--admin-blue); }
   .admin-nav-item svg { width: 18px; height: 18px; stroke: #888; transition: stroke 0.2s; }
   .admin-nav-item:hover svg { stroke: #fff; }
-  
   .admin-sidebar-bottom { padding: 20px 15px 0; border-top: 1px solid var(--admin-border); margin-top: 20px; }
-
-  /* Основная часть */
   .admin-main { flex: 1; padding: 40px; overflow-y: auto; }
   .admin-page-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
   .admin-page-icon { width: 50px; height: 50px; background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
   .admin-page-icon svg { width: 24px; height: 24px; stroke: var(--admin-blue); }
   .admin-page-title { font-size: 24px; font-weight: 700; color: #fff; }
   .admin-page-subtitle { font-size: 13px; color: #888; margin-top: 4px; }
-
-  /* Формы и кнопки */
   .admin-form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
   .admin-form-row .form-group { flex: 1; min-width: 140px; margin-bottom: 0; }
   .admin-form-row .form-control { background: #111; border: 1px solid var(--admin-border); }
   .btn-upload { width: 100%; background: var(--admin-blue); color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
   .btn-upload:hover { background: var(--admin-blue-hover); }
-
-  /* Список модов */
   .mods-section { margin-top: 40px; max-width: 800px; }
   .mods-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 15px; }
   .mods-list { display: flex; flex-direction: column; gap: 10px; }
@@ -181,8 +159,6 @@
   .mod-delete { background: transparent; border: none; cursor: pointer; color: #666; transition: 0.2s; }
   .mod-delete:hover { color: #ef4444; }
   .mod-delete svg { width: 18px; height: 18px; stroke: currentColor; }
-
-  /* Таблицы (Пользователи, Ключи, Промокоды) */
   .admin-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
   .stat-card { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; }
   .stat-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; }
@@ -212,7 +188,6 @@
   .mini-btn.danger { border-color: rgba(239,68,68,.4); color: #ef4444; }
   .mini-btn.danger:hover { background: rgba(239,68,68,.15); }
 
-  /* Модалки и уведомления */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(6px); }
   .modal-backdrop.active { display: flex; }
   .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; max-width: 440px; width: 100%; text-align: center; }
@@ -251,7 +226,6 @@
 
   <div class="global-header">
     <nav class="navbar">
-      <!-- НОВЫЙ ЛОГОТИП В ШАПКЕ -->
       <a class="logo" onclick="switchPage('landing')">
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -276,7 +250,6 @@
     </nav>
   </div>
 
-  <!-- ГЛАВНАЯ -->
   <div id="page-landing" class="page active">
     <div class="bg-container"><div class="bg-image"></div><div class="bg-overlay"></div></div>
     <main class="hero">
@@ -295,7 +268,6 @@
     </section>
   </div>
 
-  <!-- АВТОРИЗАЦИЯ -->
   <div id="page-auth" class="page">
     <div class="auth-card">
       <div id="login-form-container">
@@ -317,7 +289,6 @@
     </div>
   </div>
 
-  <!-- ЛИЧНЫЙ КАБИНЕТ -->
   <div id="page-dashboard" class="page">
     <div class="profile-container">
       <div class="profile-banner">
@@ -385,7 +356,7 @@
             Быстрые действия
           </h3>
           <div class="actions-list">
-            <a id="download-btn" href="https://www.dropbox.com/scl/fi/tp5gojs0l0m8gnbffu2q6/launcher.exe?rlkey=obbdpdhmaaywvo8k2s308t5jx&amp;dl=1" target="_blank" class="action-btn primary" style="display: none;">
+            <a id="download-btn" href="#" target="_blank" class="action-btn primary" style="display: none;">
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Скачать лаунчер
             </a>
@@ -415,7 +386,6 @@
   <div id="page-admin" class="page">
     <div class="admin-layout">
       
-      <!-- САЙДБАР -->
       <aside class="admin-sidebar">
         <div class="admin-logo">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -427,7 +397,7 @@
             </defs>
             <path d="M50 15 C25 15 10 30 10 50 C10 75 25 85 50 85 C75 85 90 75 90 50 L90 45 L50 45 L50 60 L70 60 C65 70 55 70 50 70 C35 70 25 65 25 50 C25 35 35 30 50 30 C60 30 65 35 70 40 L82 30 C75 20 65 15 50 15 Z" fill="url(#gGrad)"/>
           </svg>
-          Garmonia <span class="admin-badge">АДМИН</span> <!-- ИСПРАВЛЕНО ТУТ -->
+          Garmonia <span class="admin-badge">АДМИН</span>
         </div>
         
         <div class="lang-switch">
@@ -452,6 +422,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
             Промокоды
           </div>
+          <div class="admin-nav-item" data-tab="launcher" onclick="switchAdminTab('launcher')">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Лаунчер
+          </div>
           <div class="admin-nav-item" data-tab="uploads" onclick="switchAdminTab('uploads')">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Загрузка
@@ -474,10 +448,8 @@
         </div>
       </aside>
 
-      <!-- ОСНОВНОЙ КОНТЕНТ -->
       <main class="admin-main">
         
-        <!-- Вкладка: Панель -->
         <div id="admin-view-dashboard" class="admin-view">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
@@ -505,7 +477,6 @@
           </div>
         </div>
 
-        <!-- Вкладка: Пользователи -->
         <div id="admin-view-users" class="admin-view" style="display: none;">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
@@ -517,7 +488,6 @@
           </table>
         </div>
 
-        <!-- Вкладка: Ключи -->
         <div id="admin-view-keys" class="admin-view" style="display: none;">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
@@ -541,7 +511,6 @@
           <div id="key-list" class="key-list"></div>
         </div>
 
-        <!-- Вкладка: Промокоды -->
         <div id="admin-view-promos" class="admin-view" style="display: none;">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
@@ -557,7 +526,23 @@
           <div id="promo-list" class="key-list"></div>
         </div>
 
-        <!-- Вкладка: Загрузка -->
+        <!-- Вкладка: Лаунчер -->
+        <div id="admin-view-launcher" class="admin-view" style="display: none;">
+          <div class="admin-page-header">
+            <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+            <div><div class="admin-page-title">Лаунчер</div><div class="admin-page-subtitle">Ссылка на скачивание лаунчера для игроков</div></div>
+          </div>
+
+          <div class="admin-form-row" style="max-width: 600px;">
+            <div class="form-group" style="flex: 1;">
+              <label style="color:#888; font-size:12px; margin-bottom:8px; display:block;">Прямая ссылка на лаунчер (.exe)</label>
+              <input id="launcher-url" class="form-control" placeholder="https://example.com/launcher.exe">
+            </div>
+            <button class="btn-upload" style="width: auto; margin-bottom: 0;" onclick="saveLauncherUrl()">Сохранить</button>
+          </div>
+          <div id="launcher-msg" class="msg" style="max-width: 600px;"></div>
+        </div>
+
         <div id="admin-view-uploads" class="admin-view" style="display: none;">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
@@ -574,7 +559,6 @@
           <div id="settings-msg" class="msg" style="max-width: 600px;"></div>
         </div>
 
-        <!-- Вкладка: Моды -->
         <div id="admin-view-mods" class="admin-view" style="display: none;">
           <div class="admin-page-header">
             <div class="admin-page-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
@@ -709,7 +693,7 @@ async function doRegister() {
 }
 async function logout() { try { await api('/logout', { method: 'POST' }); } catch (e) {} clearSession(); switchPage('landing'); }
 
-function renderDashboard() {
+async function renderDashboard() {
   if (!state.user) return;
   const u = state.user;
   
@@ -734,7 +718,16 @@ function renderDashboard() {
   document.getElementById('dash-info-hwid').innerText = u.hwidResets > 0 ? `Доступно: ${u.hwidResets}` : 'Привязан';
 
   const dlBtn = document.getElementById('download-btn');
-  if (u.subActive) { dlBtn.style.display = 'flex'; } else { dlBtn.style.display = 'none'; }
+  if (u.subActive) {
+    dlBtn.style.display = 'flex';
+    // Получаем актуальную ссылку на лаунчер
+    try {
+      const data = await api('/client/launcher_url');
+      if (data.url) dlBtn.href = data.url;
+    } catch (e) {}
+  } else {
+    dlBtn.style.display = 'none';
+  }
 
   const profAdminBtn = document.getElementById('profile-btn-admin');
   if (u.role === 'admin' || u.role === 'owner') { profAdminBtn.style.display = 'flex'; } else { profAdminBtn.style.display = 'none'; }
@@ -769,6 +762,8 @@ function switchAdminTab(tab) {
   if (targetView) targetView.style.display = 'block';
 
   if (tab === 'mods') loadMods();
+  if (tab === 'launcher') loadLauncherUrl();
+  if (tab === 'uploads') loadSettings();
 }
 
 async function loadAdmin() {
@@ -869,6 +864,39 @@ async function deletePromo(id) {
   try { await api('/admin/promos/' + id, { method: 'DELETE' }); await loadAdmin(); } catch (e) { alert(e.message); }
 }
 
+/* --- ЛОГИКА ЛАУНЧЕРА И КЛИЕНТА --- */
+async function loadLauncherUrl() {
+  try {
+    const data = await api('/client/launcher_url');
+    document.getElementById('launcher-url').value = data.url;
+  } catch (e) {}
+}
+
+async function saveLauncherUrl() {
+  const msg = document.getElementById('launcher-msg'); hideMsg(msg);
+  const url = document.getElementById('launcher-url').value.trim();
+  try {
+    await api('/admin/settings/launcher_url', { method: 'POST', body: JSON.stringify({ url }) });
+    showMsg(msg, 'Ссылка на лаунчер сохранена', 'ok');
+  } catch (e) { showMsg(msg, e.message); }
+}
+
+async function loadSettings() {
+  try {
+    const data = await api('/client/mod_url');
+    document.getElementById('mod-url').value = data.url;
+  } catch (e) {}
+}
+
+async function saveModUrl() {
+  const msg = document.getElementById('settings-msg'); hideMsg(msg);
+  const url = document.getElementById('mod-url').value.trim();
+  try {
+    await api('/admin/settings/mod_url', { method: 'POST', body: JSON.stringify({ url }) });
+    showMsg(msg, 'Ссылка на клиент сохранена', 'ok');
+  } catch (e) { showMsg(msg, e.message); }
+}
+
 /* --- ЛОГИКА МОДОВ --- */
 async function loadMods() {
   try {
@@ -913,22 +941,6 @@ async function deleteMod(id) {
     loadMods();
     showToast('Мод удален');
   } catch (e) { alert(e.message); }
-}
-
-async function saveModUrl() {
-  const msg = document.getElementById('settings-msg'); hideMsg(msg);
-  const url = document.getElementById('mod-url').value.trim();
-  try {
-    await api('/admin/settings/mod_url', { method: 'POST', body: JSON.stringify({ url }) });
-    showMsg(msg, 'Ссылка на клиент сохранена', 'ok');
-  } catch (e) { showMsg(msg, e.message); }
-}
-
-async function loadSettings() {
-  try {
-    const data = await api('/client/mod_url');
-    document.getElementById('mod-url').value = data.url;
-  } catch (e) {}
 }
 
 /* --- ПОКУПКА --- */
