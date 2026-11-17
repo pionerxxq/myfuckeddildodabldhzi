@@ -2,380 +2,432 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Garmonia Launcher</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garmonia — Launcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; }
+  :root {
+    --bg-base: #050810;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    
+    --accent-light-blue: #38bdf8;
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    
+    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
   body {
-    margin: 0; padding: 0; height: 100vh; width: 100vw; 
-    background: url('https://i.pinimg.com/736x/a6/56/a1/a656a1d0e692c6180a6c3a6d213590f8.jpg') center/cover no-repeat;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    color: white; overflow: hidden; user-select: none;
-    display: flex; flex-direction: column;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
   }
-  
-  /* --- КАСТОМНЫЙ HEADER --- */
-  .title-bar {
-    height: 40px; background: rgba(10, 10, 10, 0.98);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 15px; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .title-bar-text { font-size: 13px; font-weight: 600; color: #888; pointer-events: none; }
-  .window-controls { display: flex; gap: 5px; }
-  .win-btn {
-    width: 32px; height: 28px; border: none; background: transparent; color: #aaa;
-    font-size: 14px; cursor: pointer; border-radius: 6px; transition: 0.2s;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .win-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-  .win-btn.close:hover { background: #ef4444; color: #fff; }
 
-  /* --- ОСНОВНОЙ КОНТЕНТ --- */
-  .content-wrapper { flex: 1; position: relative; display: flex; overflow: hidden; }
-  .overlay { position: absolute; inset: 0; background: rgba(15, 15, 20, 0.65); backdrop-filter: blur(3px); z-index: 1; }
-  
-  .launcher-box {
-    position: relative; z-index: 2; width: 100%; height: 100%; display: flex; overflow: hidden;
+  /* === ФОН === */
+  .aurora-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background-color: var(--bg-base);
   }
-  
-  /* --- ЛЕВАЯ ПАНЕЛЬ (ЛОГИН) --- */
-  .login-panel { 
-    width: 350px; padding: 30px; background: rgba(10, 10, 10, 0.95); 
-    display: flex; flex-direction: column; justify-content: space-between; 
-    border-right: 1px solid rgba(255,255,255,0.05);
+  .aurora-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+    opacity: 0.04; pointer-events: none; z-index: 10;
   }
-  .login-top { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-  
-  .logo { font-size: 32px; font-weight: 900; color: #38bdf8; margin-bottom: 30px; text-align: center; letter-spacing: 2px; text-shadow: 0 0 20px rgba(56,189,248,0.3); }
-  .form-group { margin-bottom: 15px; }
-  input {
-    width: 100%; padding: 14px; background: #161616; border: 1px solid #333;
-    border-radius: 10px; color: white; font-size: 14px; outline: none; transition: 0.3s;
+  .aurora-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.5;
+    animation: float 20s infinite alternate;
   }
-  input:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.2); }
-  .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; }
-  .btn-login { background: #38bdf8; color: #000; margin-top: 10px; }
-  .btn-login:hover { background: #0ea5e9; }
-  .error { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+  .blob-1 { width: 60vw; height: 60vw; background: var(--accent-blue); top: -20%; left: -20%; }
+  .blob-2 { width: 50vw; height: 50vw; background: var(--accent-light-blue); bottom: -10%; right: -10%; animation-delay: -5s; }
+  .blob-3 { width: 40vw; height: 40vw; background: var(--accent-cyan); top: 30%; left: 30%; opacity: 0.3; animation-delay: -10s; }
 
-  .login-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666; border-top: 1px solid #222; padding-top: 15px; }
-  .login-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
-  .login-footer a:hover { color: #38bdf8; }
+  @keyframes float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(10%, 10%) scale(1.1); }
+  }
 
-  /* --- ПРАВАЯ ПАНЕЛЬ (ЛАУНЧЕР) --- */
-  .main-panel { flex: 1; padding: 30px; display: flex; flex-direction: column; position: relative; overflow-y: auto; }
-  .news-title { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+  /* === ОБЩИЕ ЭЛЕМЕНТЫ === */
+  .page {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    z-index: 2;
+    position: relative;
+  }
+  .page.active {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .btn { 
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
+    padding: 14px 24px; border-radius: 12px; font-family: var(--font-body); 
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; 
+    border: none; text-decoration: none; width: 100%;
+  }
+  .btn-primary { background: #fff; color: #000; }
+  .btn-primary:hover { background: #e2e8f0; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+  .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: #fff; }
+  .btn-outline:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-light-blue); }
+
+  /* === ЭКРАН АВТОРИЗАЦИИ === */
+  .auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 20px;
+  }
   
-  .news-box { flex: 1; min-height: 120px; background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; overflow-y: auto; font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 15px; backdrop-filter: blur(5px); }
-  .news-box b { color: #fff; }
-
-  .settings-box { 
-    background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
-    padding: 15px 20px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 150px; gap: 15px; backdrop-filter: blur(5px);
+  .auth-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.4);
   }
-  .setting-item { display: flex; flex-direction: column; gap: 8px; }
-  .setting-item label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; white-space: nowrap; }
   
-  select, .folder-input {
-    width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid #444;
-    border-radius: 8px; color: white; font-size: 13px; outline: none;
-  }
-  select:focus, .folder-input:focus { border-color: #38bdf8; }
+  .auth-header { text-align: center; margin-bottom: 24px; }
+  .auth-header h2 { font-family: var(--font-heading); font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .auth-header p { color: var(--text-muted); font-size: 14px; }
   
-  .folder-group { display: flex; gap: 8px; }
-  .btn-small { padding: 10px 15px; background: #333; border: 1px solid #555; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 600; white-space: nowrap; }
-  .btn-small:hover { background: #38bdf8; color: #000; border-color: #38bdf8; }
-
-  .quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-  .quick-btn {
-    background: rgba(17, 17, 17, 0.85); border: 1px solid rgba(255,255,255,0.1); color: #ccc; text-decoration: none;
-    display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 8px;
-    font-size: 13px; font-weight: 600; transition: all 0.2s; backdrop-filter: blur(5px);
+  .form-group { margin-bottom: 16px; text-align: left; }
+  .form-group label { display: block; font-size: 12px; font-weight: 500; color: #cbd5e1; margin-bottom: 6px; }
+  .form-control { 
+    width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); 
+    border-radius: 10px; padding: 12px 14px; color: #fff; font-family: var(--font-body); 
+    font-size: 14px; transition: border-color 0.2s; outline: none; 
   }
-  .quick-btn:hover { background: rgba(34, 34, 34, 0.9); border-color: #38bdf8; color: #38bdf8; }
-
-  .bottom-area { display: flex; flex-direction: column; align-items: center; }
-  .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; margin-bottom: 15px; overflow: hidden; display: none; }
-  .progress-bar { height: 100%; width: 0%; background: #38bdf8; transition: width 0.3s; box-shadow: 0 0 10px #38bdf8; }
+  .form-control:focus { border-color: var(--accent-light-blue); box-shadow: 0 0 15px rgba(56, 189, 248, 0.15); }
   
-  .btn-download {
-    width: 100%; background: #f59e0b; color: #000; font-size: 16px; padding: 14px; border-radius: 12px;
-    font-weight: bold; display: none; border: none; cursor: pointer; margin-bottom: 10px; transition: 0.2s;
-  }
-  .btn-download:hover { background: #d97706; }
+  .auth-switch { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-muted); }
+  .auth-switch span { color: var(--accent-light-blue); cursor: pointer; font-weight: 600; }
+  .auth-switch span:hover { text-decoration: underline; }
 
-  .btn-play {
-    width: 100%; background: #22c55e; color: #000; font-size: 18px; padding: 16px; border-radius: 12px;
-    font-weight: 900; letter-spacing: 1px; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); display: none; border: none; cursor: pointer;
+  /* === ГЛАВНЫЙ ЭКРАН (ИГРА) === */
+  .launcher-header {
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(5, 8, 16, 0.4);
+    backdrop-filter: blur(10px);
   }
-  .btn-play:hover { background: #16a34a; }
-  .status-text { font-size: 13px; color: #ccc; margin-top: 10px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+  
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: #fff; }
+  .logo svg { width: 24px; height: 24px; }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 6px 16px 6px 6px;
+    border-radius: 100px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background-color: #222; background-size: cover;
+    border: 1px solid var(--accent-light-blue);
+  }
+  .user-info { display: flex; flex-direction: column; text-align: left; }
+  .user-name { font-size: 14px; font-weight: 600; }
+  .user-status { font-size: 10px; color: #22c55e; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .logout-btn {
+    background: transparent; border: none; color: #ef4444; font-size: 12px; 
+    font-weight: 600; cursor: pointer; margin-left: 8px; padding: 4px;
+  }
+  .logout-btn:hover { text-decoration: underline; }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+  }
+
+  .launcher-title { font-family: var(--font-heading); font-size: 52px; font-weight: 700; line-height: 1.1; margin-bottom: 12px; }
+  .launcher-title span { background: linear-gradient(to right, var(--accent-light-blue), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .launcher-subtitle { color: var(--text-muted); font-size: 15px; margin-bottom: 40px; }
+
+  .play-btn {
+    background: #fff; color: #000; border: none; border-radius: 16px;
+    padding: 20px 40px; font-family: var(--font-heading); font-size: 20px; font-weight: 700;
+    cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+    gap: 12px; width: 100%; max-width: 360px;
+  }
+  .play-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4); }
+  .play-btn svg { width: 24px; height: 24px; fill: #000; }
+
+  .progress-container { width: 100%; max-width: 360px; margin-top: 24px; display: none; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .progress-track { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 100px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-light-blue)); border-radius: 100px; transition: width 0.3s; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
+
+  .launcher-footer {
+    padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--text-muted); background: rgba(5, 8, 16, 0.4); backdrop-filter: blur(10px);
+  }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a { color: var(--text-muted); text-decoration: none; transition: 0.2s; }
+  .footer-links a:hover { color: var(--accent-light-blue); }
 </style>
 </head>
 <body>
 
-  <!-- КАСТОМНЫЙ ХЕДЕР -->
-  <div class="title-bar" id="title-bar">
-    <div class="title-bar-text">Garmonia Launcher</div>
-    <div class="window-controls">
-      <button class="win-btn" onclick="minimizeApp()">—</button>
-      <button class="win-btn close" onclick="closeApp()">✕</button>
+  <!-- ФОН -->
+  <div class="aurora-bg">
+    <div class="aurora-blob blob-1"></div>
+    <div class="aurora-blob blob-2"></div>
+    <div class="aurora-blob blob-3"></div>
+  </div>
+
+  <!-- ЭКРАН 1: АВТОРИЗАЦИЯ -->
+  <div id="page-auth" class="page active">
+    <div class="auth-container">
+      
+      <!-- Форма Входа -->
+      <div class="auth-card" id="login-form">
+        <div class="auth-header">
+          <h2>Вход</h2>
+          <p>Авторизуйтесь в Garmonia</p>
+        </div>
+        <div class="form-group">
+          <label>Логин</label>
+          <input type="text" id="login-user" class="form-control" placeholder="Твой никнейм">
+        </div>
+        <div class="form-group">
+          <label>Пароль</label>
+          <input type="password" id="login-pass" class="form-control" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" onclick="doLogin()" style="margin-top: 10px;">Войти</button>
+        <div class="auth-switch">
+          Нет аккаунта? <span onclick="toggleAuthForms()">Создать</span>
+        </div>
+      </div>
+
+      <!-- Форма Регистрации (скрыта) -->
+      <div class="auth-card" id="register-form" style="display: none;">
+        <div class="auth-header">
+          <h2>Регистрация</h2>
+          <p>Создайте аккаунт в Garmonia</p>
+        </div>
+        <div class="form-group">
+          <label>Логин</label>
+          <input type="text" id="reg-user" class="form-control" placeholder="Придумай логин">
+        </div>
+        <div class="form-group">
+          <label>Пароль</label>
+          <input type="password" id="reg-pass" class="form-control" placeholder="Минимум 6 символов">
+        </div>
+        <button class="btn btn-primary" onclick="doRegister()" style="margin-top: 10px;">Зарегистрироваться</button>
+        <div class="auth-switch">
+          Уже есть аккаунт? <span onclick="toggleAuthForms()">Войти</span>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- ОСНОВНОЙ КОНТЕНТ -->
-  <div class="content-wrapper">
-    <div class="overlay"></div>
-    <div class="launcher-box">
-      
-      <!-- ПАНЕЛЬ ВХОДА -->
-      <div class="login-panel" id="login-panel">
-        <div class="login-top">
-          <div class="logo">GARMONIA</div>
-          <div class="form-group"><input type="text" id="username" placeholder="Логин"></div>
-          <div class="form-group"><input type="password" id="password" placeholder="Пароль"></div>
-          <button class="btn btn-login" id="login-btn" onclick="login()">Войти</button>
-          <div class="spinner" id="login-spinner"></div>
-          <div class="error" id="login-error"></div>
+  <!-- ЭКРАН 2: ГЛАВНЫЙ (ИГРА) -->
+  <div id="page-main" class="page">
+    <header class="launcher-header">
+      <a href="#" class="logo">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#38bdf8" />
+              <stop offset="50%" stop-color="#3b82f6" />
+              <stop offset="100%" stop-color="#06b6d4" />
+            </linearGradient>
+          </defs>
+          <path d="M50 15 C25 15 10 30 10 50 C10 75 25 85 50 85 C75 85 90 75 90 50 L90 45 L50 45 L50 60 L70 60 C65 70 55 70 50 70 C35 70 25 65 25 50 C25 35 35 30 50 30 C60 30 65 35 70 40 L82 30 C75 20 65 15 50 15 Z" fill="url(#gGrad)"/>
+        </svg>
+        Garmonia
+      </a>
+
+      <div class="user-profile">
+        <div class="user-avatar" id="ui-avatar"></div>
+        <div class="user-info">
+          <span class="user-name" id="ui-name">Player</span>
+          <span class="user-status">Подписка активна</span>
         </div>
-        <div class="login-footer">
-          <a href="https://garmoniadlc.up.railway.app" target="_blank">Сайт</a>
-          <a href="https://discord.com/app" target="_blank">Discord</a>
-          <span class="version">v1.0.4</span>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <h1 class="launcher-title">Готов к <br><span>погружению?</span></h1>
+      <p class="launcher-subtitle">Клиент обновлен до последней версии. Все системы работают стабильно.</p>
+
+      <button class="play-btn" id="play-btn" onclick="startGame()">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        ИГРАТЬ
+      </button>
+
+      <div class="progress-container" id="progress-container">
+        <div class="progress-info">
+          <span id="progress-text">Проверка файлов...</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
         </div>
       </div>
+    </main>
 
-      <!-- ПАНЕЛЬ ИГРЫ -->
-      <div class="main-panel" id="main-panel" style="display: none;">
-        <div class="news-title">Привет, <span id="user-name" style="color:#38bdf8"></span>!</div>
-        
-        <div class="quick-links">
-          <a href="https://garmoniadlc.up.railway.app" target="_blank" class="quick-btn">Личный кабинет</a>
-          <a href="https://garmoniadlc.up.railway.app/#pricing" target="_blank" class="quick-btn">Купить подписку</a>
-        </div>
-
-        <div class="news-box">
-          <b>GarmoniaDLC - лучший выбор</b><br>
-          - Хорошие визуалы.<br>
-          - Отличный пвп функционал.<br><br>
-          <i style="color:#888;">Скачайте клиент (если не скачан) и нажмите "Играть".</i>
-        </div>
-
-        <div class="settings-box">
-          <div class="setting-item">
-            <label>Папка установки (1.21.11)</label>
-            <div class="folder-group">
-              <input type="text" id="install-path" class="folder-input" value="D:\GarmAntiLeak\clients\Garmonia\1.21.11\" readonly>
-              <button class="btn-small" onclick="selectFolder()">Обзор</button>
-            </div>
-          </div>
-          <div class="setting-item">
-            <label>RAM</label>
-            <select id="ram-select">
-              <option value="2048">2 GB</option>
-              <option value="4096" selected>4 GB</option>
-              <option value="6144">6 GB</option>
-              <option value="8192">8 GB</option>
-              <option value="16384">16 GB</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="bottom-area">
-          <div class="progress-container" id="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-          </div>
-          
-          <button class="btn btn-download" id="download-btn" onclick="downloadGame()">СКАЧАТЬ КЛИЕНТ</button>
-          <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
-          
-          <div class="status-text" id="status-text">Система готова к запуску</div>
-        </div>
+    <footer class="launcher-footer">
+      <div>© 2024 Garmonia. Все права защищены.</div>
+      <div class="footer-links">
+        <a href="https://discord.com/app" target="_blank">Discord</a>
+        <a href="#" onclick="alert('Открытие сайта')">Веб-сайт</a>
       </div>
-
-    </div>
+    </footer>
   </div>
 
 <script>
-let myHwid = "UNKNOWN";
-
-// Загрузка сохраненных настроек при старте
-window.addEventListener('DOMContentLoaded', () => {
-  const savedPath = localStorage.getItem('garmonia_path');
-  if (savedPath) document.getElementById('install-path').value = savedPath;
-  
-  const savedRam = localStorage.getItem('garmonia_ram');
-  if (savedRam) document.getElementById('ram-select').value = savedRam;
-});
-
-// Сохраняем RAM при изменении
-document.getElementById('ram-select').addEventListener('change', (e) => localStorage.setItem('garmonia_ram', e.target.value));
-
-// Обмен сообщениями с C#
-if (window.chrome && window.chrome.webview) {
-  document.getElementById('title-bar').addEventListener('mousedown', (e) => {
-    if (e.target.tagName !== 'BUTTON') window.chrome.webview.postMessage("DRAG");
-  });
-
-  window.chrome.webview.addEventListener('message', event => {
-    const msg = event.data;
-    
-    if (msg.startsWith("HWID:")) myHwid = msg.split(":")[1];
-    
-    if (msg.startsWith("FOLDER_SELECTED:")) {
-      const newPath = msg.replace("FOLDER_SELECTED:", "");
-      document.getElementById('install-path').value = newPath;
-      localStorage.setItem('garmonia_path', newPath);
+  // === ЛОГИКА АВТОРИЗАЦИИ ===
+  function toggleAuthForms() {
+    const l = document.getElementById('login-form');
+    const r = document.getElementById('register-form');
+    if (l.style.display === 'none') {
+      l.style.display = 'block';
+      r.style.display = 'none';
+    } else {
+      l.style.display = 'none';
+      r.style.display = 'block';
     }
+  }
+
+  function doLogin() {
+    const user = document.getElementById('login-user').value;
+    const pass = document.getElementById('login-pass').value;
     
-    // Прогресс скачивания (реальный)
-    if (msg.startsWith("PROGRESS:")) {
-      const percent = parseInt(msg.split(":")[1]);
-      if (!isNaN(percent)) {
-        document.getElementById('progress-bar').style.width = percent + '%';
+    if (!user || !pass) {
+      alert('Заполните все поля!');
+      return;
+    }
+
+    // Имитация запроса к серверу
+    // В реальности здесь будет fetch('/api/login', ...)
+    showMainScreen(user);
+  }
+
+  function doRegister() {
+    const user = document.getElementById('reg-user').value;
+    const pass = document.getElementById('reg-pass').value;
+    
+    if (!user || !pass) {
+      alert('Заполните все поля!');
+      return;
+    }
+
+    // Имитация регистрации
+    showMainScreen(user);
+  }
+
+  function logout() {
+    // Сброс полей
+    document.getElementById('login-user').value = '';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('reg-user').value = '';
+    document.getElementById('reg-pass').value = '';
+    
+    // Переключение экранов
+    document.getElementById('page-main').classList.remove('active');
+    document.getElementById('page-auth').classList.add('active');
+  }
+
+  // === ЛОГИКА ГЛАВНОГО ЭКРАНА ===
+  function showMainScreen(username) {
+    // Устанавливаем данные пользователя
+    document.getElementById('ui-name').innerText = username;
+    document.getElementById('ui-avatar').style.backgroundImage = `url('https://mc-heads.net/avatar/${username}/64')`;
+    
+    // Переключаем экраны
+    document.getElementById('page-auth').classList.remove('active');
+    document.getElementById('page-main').classList.add('active');
+    
+    // Сбрасываем прогресс-бар на случай повторного входа
+    document.getElementById('play-btn').style.display = 'flex';
+    document.getElementById('progress-container').style.display = 'none';
+    document.getElementById('progress-fill').style.width = '0%';
+  }
+
+  function startGame() {
+    const btn = document.getElementById('play-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const progressPercent = document.getElementById('progress-percent');
+
+    btn.style.display = 'none';
+    progressContainer.style.display = 'block';
+
+    let progress = 0;
+    const stages = [
+      { p: 30, text: "Проверка целостности файлов..." },
+      { p: 65, text: "Загрузка модулей..." },
+      { p: 90, text: "Подключение к серверам Garmonia..." },
+      { p: 100, text: "Запуск Minecraft..." }
+    ];
+
+    const interval = setInterval(() => {
+      progress += Math.random() * 12;
+      
+      for (let i = stages.length - 1; i >= 0; i--) {
+        if (progress >= stages[i].p - 15) {
+          progressText.innerText = stages[i].text;
+          break;
+        }
       }
-    }
-    
-    // Текст статуса
-    if (msg.startsWith("STATUS:")) {
-      document.getElementById('status-text').innerText = msg.split(":")[1];
-    }
-    
-    // Установка завершена
-    if (msg === "INSTALL_SUCCESS") {
-      document.getElementById('status-text').innerText = "Установка завершена!";
-      document.getElementById('progress-bar').style.width = '100%';
-      setTimeout(() => {
-        document.getElementById('download-btn').style.display = 'block';
-        document.getElementById('progress-container').style.display = 'none';
-        document.getElementById('progress-bar').style.width = '0%';
-      }, 2000);
-    }
-    
-    // Ошибка установки/запуска
-    if (msg === "INSTALL_ERROR") {
-      document.getElementById('status-text').innerText = "Ошибка";
-      document.getElementById('download-btn').style.display = 'block';
-      document.getElementById('play-btn').style.display = 'block';
-      document.getElementById('progress-container').style.display = 'none';
-      document.getElementById('progress-bar').style.width = '0%';
-    }
-    
-    // Игра успешно запущена
-    if (msg === "LAUNCH_SUCCESS") {
-      document.getElementById('status-text').innerText = "Игра запущена!";
-      document.getElementById('progress-container').style.display = 'none';
-      document.getElementById('progress-bar').style.width = '0%';
-      // Кнопка "Играть" скрыта, пока игра открыта
-    }
 
-    // Игра закрыта (возвращаем кнопку)
-    if (msg === "GAME_EXITED") {
-      document.getElementById('status-text').innerText = "Игра закрыта. Можно запускать снова.";
-      document.getElementById('play-btn').style.display = 'block';
-      document.getElementById('progress-container').style.display = 'none';
-      document.getElementById('progress-bar').style.width = '0%';
-    }
-  });
-  
-  window.chrome.webview.postMessage("GET_HWID");
-}
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        progressText.innerText = "Готово! Игра запускается...";
+        
+        setTimeout(() => {
+          alert("Minecraft успешно запущен! (Демонстрация)");
+          btn.style.display = 'flex';
+          progressContainer.style.display = 'none';
+          progressFill.style.width = '0%';
+        }, 1000);
+      }
 
-// Управление окном
-function minimizeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("MINIMIZE"); }
-function closeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("CLOSE"); }
-
-// Выбор папки
-function selectFolder() {
-  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("SELECT_FOLDER");
-}
-
-// Авторизация
-async function login() {
-  const u = document.getElementById('username').value.trim();
-  const p = document.getElementById('password').value;
-  const err = document.getElementById('login-error');
-  const btn = document.getElementById('login-btn');
-  const spinner = document.getElementById('login-spinner');
-
-  if (!u || !p) { err.innerText = "Введите логин и пароль"; err.style.display = 'block'; return; }
-  btn.style.display = 'none'; spinner.style.display = 'block'; err.style.display = 'none';
-
-  try {
-    const hwidToSend = myHwid === "UNKNOWN" ? "TEST_HWID_BROWSER" : myHwid;
-    const res = await fetch('/api/client/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: u, password: p, hwid: hwidToSend })
-    });
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error);
-
-    document.getElementById('login-panel').style.display = 'none';
-    document.getElementById('main-panel').style.display = 'flex';
-    document.getElementById('user-name').innerText = u;
-    
-    document.getElementById('download-btn').style.display = 'block';
-    document.getElementById('play-btn').style.display = 'block';
-
-  } catch (e) {
-    err.innerText = e.message; err.style.display = 'block';
-    btn.style.display = 'block'; spinner.style.display = 'none';
+      progressFill.style.width = progress + '%';
+      progressPercent.innerText = Math.floor(progress) + '%';
+    }, 200);
   }
-}
-
-// Скачивание
-async function downloadGame() {
-  const path = document.getElementById('install-path').value;
-  const container = document.getElementById('progress-container');
-  const status = document.getElementById('status-text');
-
-  document.getElementById('download-btn').style.display = 'none';
-  container.style.display = 'block';
-  status.innerText = 'Получение ссылки...';
-  document.getElementById('progress-bar').style.width = '0%';
-
-  try {
-    const res = await fetch('/api/client/mod_url');
-    const data = await res.json();
-    
-    if (!data.url) throw new Error("Ссылка на мод не настроена на сервере.");
-
-    status.innerText = 'Подготовка к скачиванию...';
-    
-    if (window.chrome && window.chrome.webview) {
-      window.chrome.webview.postMessage(`DOWNLOAD_MINECRAFT|${path}|${data.url}`);
-    }
-  } catch (e) {
-    status.innerText = 'Ошибка';
-    alert(e.message);
-    document.getElementById('download-btn').style.display = 'block';
-    container.style.display = 'none';
-  }
-}
-
-// Запуск игры
-function playGame() {
-  const btn = document.getElementById('play-btn');
-  const container = document.getElementById('progress-container');
-  const status = document.getElementById('status-text');
-
-  const selectedRam = document.getElementById('ram-select').value;
-  const installPath = document.getElementById('install-path').value;
-  const playerName = document.getElementById('user-name').innerText; // Берем ник
-
-  btn.style.display = 'none';
-  container.style.display = 'block';
-  document.getElementById('progress-bar').style.width = '10%';
-  status.innerText = 'Запуск клиента...';
-  
-  if (window.chrome && window.chrome.webview) {
-    // Отправляем ник в C#
-    window.chrome.webview.postMessage(`START_MINECRAFT|1.21.11 Fabric|${selectedRam}|${installPath}|${playerName}`);
-  } else {
-    alert("Играть можно только через GarmoniaLauncher.exe!");
-  }
-}
 </script>
 </body>
 </html>
