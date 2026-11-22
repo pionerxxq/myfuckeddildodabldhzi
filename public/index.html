@@ -35,6 +35,13 @@
     --font-heading: 'Space Grotesk', sans-serif;
   }
 
+  /* === КАСТОМНЫЙ СКРОЛЛБАР === */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; transition: 0.2s; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent-light-blue); }
+  * { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2); }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   
   body {
@@ -47,49 +54,27 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* === ЖИВОЙ ФОН (Blue Aurora + Noise) === */
-  .aurora-bg {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    overflow: hidden;
-    background-color: var(--bg-base);
-  }
+  /* === ЖИВОЙ ФОН === */
+  .aurora-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; background-color: var(--bg-base); }
   .aurora-bg::after {
     content: ""; position: absolute; inset: 0;
     background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
     opacity: 0.04; pointer-events: none; z-index: 10;
   }
-  .aurora-blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.5;
-    animation: float 20s infinite alternate;
-  }
+  .aurora-blob { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.5; animation: float 20s infinite alternate; }
   .blob-1 { width: 60vw; height: 60vw; background: var(--accent-blue); top: -20%; left: -20%; }
   .blob-2 { width: 50vw; height: 50vw; background: var(--accent-light-blue); bottom: -10%; right: -10%; animation-delay: -5s; }
   .blob-3 { width: 40vw; height: 40vw; background: var(--accent-cyan); top: 30%; left: 30%; opacity: 0.3; animation-delay: -10s; }
-
-  @keyframes float {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(10%, 10%) scale(1.1); }
-  }
+  @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(10%, 10%) scale(1.1); } }
 
   /* === ШАПКА === */
   .header {
-    position: fixed;
-    top: 20px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     width: calc(100% - 40px); max-width: 1200px;
-    background: rgba(5, 8, 16, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 100px;
+    background: rgba(5, 8, 16, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border); border-radius: 100px;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 10px 10px 24px;
-    z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 10px 10px 10px 24px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
   .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-size: 20px; font-weight: 700; cursor: pointer; text-decoration: none; color: #fff; }
   .logo svg { width: 28px; height: 28px; }
@@ -117,181 +102,28 @@
   .hero h1 { font-family: var(--font-heading); font-size: clamp(48px, 7vw, 84px); font-weight: 700; line-height: 1.05; margin-bottom: 24px; letter-spacing: -0.04em; position: relative; z-index: 2; }
   .hero h1 span { background: linear-gradient(to right, var(--accent-light-blue), var(--accent-blue), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px; position: relative; z-index: 2; }
-  
-  /* Плавающие сферы в Hero */
-  .floating-orb { position: absolute; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0)); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); animation: floatOrb 6s ease-in-out infinite; z-index: 1; }
-  .orb-1 { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
-  .orb-2 { width: 120px; height: 120px; bottom: 20%; right: 5%; animation-delay: -2s; }
-  .orb-3 { width: 60px; height: 60px; top: 40%; right: 15%; animation-delay: -4s; }
-  @keyframes floatOrb { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-30px) rotate(10deg); } 100% { transform: translateY(0) rotate(0deg); } }
 
-  /* Стрелка вниз */
-  .scroll-down { display: inline-flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; margin-top: 30px; cursor: pointer; animation: bounce 2s infinite; z-index: 2; position: relative; }
-  .scroll-down svg { width: 20px; height: 20px; }
-  @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
-
-  /* === НОВАЯ СЕКЦИЯ: ФУНКЦИОНАЛ (Best Functionality) === */
-  .func-section {
-    padding: 80px 20px;
-    max-width: 1100px;
-    margin: 0 auto;
-    width: 100%;
-    position: relative;
-    z-index: 2;
-  }
-
-  .func-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 50px;
-    gap: 40px;
-  }
-
-  .func-subtitle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent-light-blue);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 16px;
-  }
-
-  .func-title {
-    font-family: var(--font-heading);
-    font-size: clamp(32px, 5vw, 48px);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
-  
-  .func-title span {
-    background: linear-gradient(to right, var(--accent-light-blue), var(--accent-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .func-desc {
-    max-width: 320px;
-    font-size: 14px;
-    color: var(--text-muted);
-    line-height: 1.6;
-    padding-bottom: 8px;
-  }
-
-  .func-grid {
-    display: grid;
-    /* Настроено на 2 колонки для двух карточек */
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 24px;
-    margin-bottom: 40px;
-  }
-
-  .func-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.4s ease;
-  }
-
-  .func-card:hover {
-    border-color: rgba(56, 189, 248, 0.4);
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(56, 189, 248, 0.1);
-  }
-
-  .func-img-wrapper {
-    width: 100%;
-    height: 240px;
-    overflow: hidden;
-    border-bottom: 1px solid var(--glass-border);
-    background: #0f172a;
-  }
-
-  .func-img-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-  }
-
-  .func-card:hover .func-img-wrapper img {
-    transform: scale(1.05);
-  }
-
-  .func-info {
-    padding: 28px;
-  }
-
-  .func-number {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-family: var(--font-heading);
-    font-size: 14px;
-    color: var(--accent-light-blue);
-    margin-bottom: 12px;
-  }
-
-  .func-number::before {
-    content: '';
-    display: block;
-    width: 24px;
-    height: 1px;
-    background: var(--accent-light-blue);
-  }
-
-  .func-info h3 {
-    font-family: var(--font-heading);
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #fff;
-  }
-
-  .func-info p {
-    font-size: 14px;
-    color: var(--text-muted);
-    line-height: 1.5;
-  }
-
-  .func-action {
-    display: flex;
-    justify-content: flex-start;
-  }
-
-  .func-btn {
-    padding: 14px 28px;
-    border-radius: 100px;
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: var(--accent-light-blue);
-    font-size: 15px;
-    font-weight: 600;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
-  }
-
-  .func-btn:hover {
-    background: var(--accent-light-blue);
-    color: #000;
-    box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
-  }
-
-  .func-btn svg {
-    transition: transform 0.3s ease;
-  }
-
-  .func-btn:hover svg {
-    transform: translateX(4px);
-  }
+  /* Функционал (2 карточки) */
+  .func-section { padding: 60px 20px; max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 2; }
+  .func-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; gap: 40px; }
+  .func-subtitle { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--accent-light-blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .func-title { font-family: var(--font-heading); font-size: clamp(32px, 5vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+  .func-title span { background: linear-gradient(to right, var(--accent-light-blue), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .func-desc { max-width: 320px; font-size: 14px; color: var(--text-muted); line-height: 1.6; padding-bottom: 8px; }
+  .func-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 40px; }
+  .func-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; transition: all 0.4s; }
+  .func-card:hover { border-color: rgba(56, 189, 248, 0.4); transform: translateY(-5px); box-shadow: 0 15px 30px rgba(56, 189, 248, 0.1); }
+  .func-img-wrapper { width: 100%; height: 240px; overflow: hidden; border-bottom: 1px solid var(--glass-border); background: #0f172a; }
+  .func-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+  .func-card:hover .func-img-wrapper img { transform: scale(1.05); }
+  .func-info { padding: 28px; }
+  .func-number { display: flex; align-items: center; gap: 12px; font-family: var(--font-heading); font-size: 14px; color: var(--accent-light-blue); margin-bottom: 12px; }
+  .func-number::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent-light-blue); }
+  .func-info h3 { font-family: var(--font-heading); font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #fff; }
+  .func-info p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
 
   /* Тарифы */
-  .pricing-section { padding: 60px 20px; max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 2; }
+  .pricing-section { padding: 60px 20px 100px; max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 2; }
   .section-title { font-family: var(--font-heading); text-align: center; font-size: 36px; font-weight: 700; margin-bottom: 40px; letter-spacing: -0.02em; }
   .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
   .price-card { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 32px; display: flex; flex-direction: column; position: relative; transition: all 0.4s ease; }
@@ -304,16 +136,6 @@
   .card-features { list-style: none; margin-bottom: 32px; flex-grow: 1; display: flex; flex-direction: column; gap: 12px; }
   .card-features li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #e2e8f0; }
   .card-features li svg { width: 18px; height: 18px; stroke: var(--accent-light-blue); }
-
-  /* Фишки */
-  .features-section { padding: 60px 20px 100px; max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 2; }
-  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-  .feature-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 32px; transition: all 0.3s; }
-  .feature-card:hover { border-color: var(--accent-light-blue); background: var(--glass-hover); transform: translateY(-5px); }
-  .feature-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(56, 189, 248, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-  .feature-icon svg { width: 24px; height: 24px; stroke: var(--accent-light-blue); }
-  .feature-card h3 { font-family: var(--font-heading); font-size: 20px; font-weight: 600; margin-bottom: 12px; }
-  .feature-card p { font-size: 14px; color: var(--text-muted); }
 
   /* === АВТОРИЗАЦИЯ === */
   .auth-container { display: flex; justify-content: center; align-items: center; flex: 1; padding: 20px; position: relative; z-index: 10; }
@@ -426,16 +248,15 @@
     .key-input-row { flex-direction: column; }
     .header { padding: 10px 16px; border-radius: 20px; }
     .floating-orb { display: none; }
-    
     .func-header { flex-direction: column; align-items: flex-start; gap: 20px; }
     .func-desc { max-width: 100%; }
-    .func-grid { grid-template-columns: 1fr; } /* На мобилках карточки встанут друг под другом */
+    .func-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-  <!-- ЖИВОЙ ФОН (Blue Aurora + Noise) -->
+  <!-- ЖИВОЙ ФОН -->
   <div class="aurora-bg">
     <div class="aurora-blob blob-1"></div>
     <div class="aurora-blob blob-2"></div>
@@ -472,25 +293,14 @@
   <!-- ЛЕНДИНГ -->
   <div id="page-landing" class="page active">
     <section class="hero">
-      <!-- Плавающие сферы -->
-      <div class="floating-orb orb-1"></div>
-      <div class="floating-orb orb-2"></div>
-      <div class="floating-orb orb-3"></div>
-
       <h1>Почувствуй игру <br>по-новому с <span>Garmonia</span></h1>
       <p>Самый продвинутый Minecraft-клиент. Максимальный FPS, идеальный PvP и абсолютная защита от античитов.</p>
       <div style="display: flex; gap: 16px; justify-content: center;">
         <button class="btn btn-primary" style="padding: 16px 40px; font-size: 16px;" onclick="goToProducts()">Выбрать тариф</button>
       </div>
-      
-      <!-- Стрелка вниз -->
-      <div class="scroll-down" onclick="goToProducts()">
-        <span>Листай вниз</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-      </div>
     </section>
 
-    <!-- НОВАЯ СЕКЦИЯ: ФУНКЦИОНАЛ (2 карточки) -->
+    <!-- НОВАЯ СЕКЦИЯ: ФУНКЦИОНАЛ -->
     <section class="func-section">
       <div class="func-header">
         <div class="func-title-area">
@@ -506,7 +316,6 @@
       </div>
 
       <div class="func-grid">
-        <!-- Карточка 1: Интерфейс -->
         <div class="func-card">
           <div class="func-img-wrapper">
             <img src="./image_1.jpg" alt="Интерфейс" loading="lazy">
@@ -518,7 +327,6 @@
           </div>
         </div>
 
-        <!-- Карточка 2: ClickGui -->
         <div class="func-card">
           <div class="func-img-wrapper">
             <img src="./image_2.jpg" alt="ClickGui" loading="lazy">
@@ -529,13 +337,6 @@
             <p>Продвинутое меню настроек с гибкой кастомизацией модулей и быстрым доступом ко всем функциям клиента.</p>
           </div>
         </div>
-      </div>
-
-      <div class="func-action">
-        <button class="btn btn-outline func-btn" onclick="goToProducts()">
-          Смотреть каталог
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
       </div>
     </section>
 
@@ -575,23 +376,16 @@
       </div>
     </section>
 
-    <section id="features" class="features-section">
+    <section id="features" class="func-section" style="padding-bottom: 100px;">
       <h2 class="section-title">Технологии будущего</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-          <h3>Максимальный FPS</h3>
+      <div class="func-grid">
+        <div class="func-card" style="padding: 32px;">
+          <div class="func-number"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> МАКСИМАЛЬНЫЙ FPS</div>
           <p>Оптимизация поднимает частоту кадров до максимума даже на слабых ПК, обеспечивая плавность в любых замесах.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14.5 10.5L21 4l-1-1-6.5 6.5m-3 3L4 21l-1-1 6.5-6.5m-2-2L9 13m6-6l1.5 1.5"/></svg></div>
-          <h3>Ультимативный PvP</h3>
+        <div class="func-card" style="padding: 32px;">
+          <div class="func-number"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2"><path d="M14.5 10.5L21 4l-1-1-6.5 6.5m-3 3L4 21l-1-1 6.5-6.5m-2-2L9 13m6-6l1.5 1.5"/></svg> УЛЬТИМАТИВНЫЙ PVP</div>
           <p>Улучшенный рендер хитбоксов, кастомная анимация ударов и плавный неткод для идеального комбо.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-          <h3>Anti-Ban Защита</h3>
-          <p>Продвинутые Bypass-модули для обхода античитов (Matrix, NCP, Grim) гарантируют безопасность аккаунта.</p>
         </div>
       </div>
     </section>
@@ -641,7 +435,6 @@
   <!-- ЛИЧНЫЙ КАБИНЕТ -->
   <div id="page-dashboard" class="page">
     <div class="dash-container">
-      <!-- Сайдбар -->
       <aside class="dash-sidebar">
         <div class="dash-avatar" id="dash-avatar"></div>
         <h2 class="dash-username" id="dash-username">User</h2>
@@ -661,11 +454,9 @@
             Админ-панель
           </div>
         </div>
-        
         <button class="btn btn-danger btn-full" onclick="logout()" style="margin-top: auto;">Выйти</button>
       </aside>
 
-      <!-- Контент -->
       <main class="dash-content">
         <div class="dash-card">
           <h3 class="dash-card-title">Данные аккаунта</h3>
@@ -751,7 +542,7 @@
           </div>
           <div class="admin-nav-item" data-tab="launcher" onclick="switchAdminTab('launcher')">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            Лаунчер
+            Клиент / Лаунчер
           </div>
           <div class="admin-nav-item" data-tab="mods" onclick="switchAdminTab('mods')">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -836,10 +627,11 @@
           </div>
         </div>
 
-        <!-- Лаунчер -->
+        <!-- Клиент / Лаунчер -->
         <div id="admin-view-launcher" class="admin-view" style="display: none;">
-          <h1 class="admin-header">Ссылка на лаунчер</h1>
+          <h1 class="admin-header">Основной клиент (.jar / Лаунчер)</h1>
           <div class="admin-card">
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Вставьте прямую ссылку на ваш основной клиент или лаунчер. Эта ссылка будет использоваться для скачивания игроками.</p>
             <div class="admin-input-group">
               <input type="text" id="launcher-url" placeholder="https://..." style="flex: 1;">
               <button class="btn btn-primary" onclick="saveLauncherUrl()">Сохранить</button>
