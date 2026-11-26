@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Garmonia — Best DLCt</title>
+<title>Garmonia — Premium Client</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -536,7 +536,6 @@
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Клиент (.jar)
           </div>
-          <!-- НОВАЯ ВКЛАДКА ЛОГИ -->
           <div class="admin-nav-item" data-tab="logs" onclick="switchAdminTab('logs')">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Логи
@@ -653,7 +652,9 @@
             <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">История активаций ключей, смен ролей и других действий администраторов и пользователей.</p>
             <table class="admin-table">
               <thead><tr><th>Дата</th><th>Кто сделал</th><th>Действие</th><th>Детали</th></tr></thead>
-              <tbody id="admin-logs-body"></tbody>
+              <tbody id="admin-logs-body">
+                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Загрузка...</td></tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -992,7 +993,7 @@ async function loadClientUrl() {
 async function saveClientUrl() {
   const msg = document.getElementById('client-msg'); hideMsg(msg);
   try {
-    await api('/admin/settings/client_url', { method: 'POST', body: JSON.stringify({ url: document.getElementById('client-url').value.trim() }) });
+    await api('/admin/settings/mod_url', { method: 'POST', body: JSON.stringify({ url: document.getElementById('client-url').value.trim() }) });
     showMsg(msg, 'Ссылка на клиент сохранена', 'ok');
   } catch (e) { showMsg(msg, e.message); }
 }
@@ -1003,16 +1004,12 @@ async function loadLogs() {
   tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Загрузка логов...</td></tr>';
 
   try {
-    // В реальности здесь должен быть запрос к API: await api('/admin/logs')
-    // Пока используем заглушку для демонстрации дизайна:
-    const mockLogs = [
-      { date: new Date().toLocaleString('ru-RU'), user: 'admin', action: 'Активация ключа', details: 'Пользователь Player1 активировал ключ 7 Дней (XXXX-XXXX)' },
-      { date: new Date(Date.now() - 3600000).toLocaleString('ru-RU'), user: 'admin', action: 'Сброс HWID', details: 'Сброшен HWID для пользователя Hacker228' },
-      { date: new Date(Date.now() - 7200000).toLocaleString('ru-RU'), user: 'owner', action: 'Смена роли', details: 'Пользователь Player2 получил роль Медиа' },
-      { date: new Date(Date.now() - 86400000).toLocaleString('ru-RU'), user: 'admin', action: 'Бан', details: 'Пользователь Cheater забанен. Причина: Читы' }
-    ];
-
-    tbody.innerHTML = mockLogs.map(log => `
+    const logs = await api('/admin/logs');
+    if (!logs.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Логов пока нет.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = logs.map(log => `
       <tr>
         <td style="color: var(--text-muted); font-size: 12px;">${log.date}</td>
         <td style="color: var(--accent-light-blue); font-weight: 600;">${log.user}</td>
