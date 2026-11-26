@@ -21,7 +21,6 @@
     --font-heading: 'Space Grotesk', sans-serif;
   }
 
-  /* Кастомный скроллбар */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
   ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
@@ -39,7 +38,6 @@
     display: flex; flex-direction: column;
   }
 
-  /* === ЖИВОЙ ФОН === */
   .aurora-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; background-color: var(--bg-base); }
   .aurora-bg::after {
     content: ""; position: absolute; inset: 0;
@@ -52,12 +50,11 @@
   .blob-3 { width: 40vw; height: 40vw; background: var(--accent-cyan); top: 30%; left: 30%; opacity: 0.3; animation-delay: -10s; }
   @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(10%, 10%) scale(1.1); } }
 
-  /* --- КАСТОМНЫЙ HEADER --- */
   .title-bar {
     height: 40px; background: rgba(5, 8, 16, 0.6); backdrop-filter: blur(10px);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 15px; z-index: 100; border-bottom: 1px solid var(--glass-border);
-    flex-shrink: 0; /* Чтобы шапка не сжималась */
+    flex-shrink: 0;
   }
   .title-bar-text { font-size: 13px; font-weight: 600; color: var(--text-muted); pointer-events: none; font-family: var(--font-heading); }
   .window-controls { display: flex; gap: 5px; }
@@ -69,23 +66,17 @@
   .win-btn:hover { background: var(--glass-hover); color: #fff; }
   .win-btn.close:hover { background: #ef4444; color: #fff; }
 
-  /* --- ОСНОВНОЙ КОНТЕНТ --- */
   .content-wrapper { flex: 1; position: relative; display: flex; overflow: hidden; }
   .launcher-box { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; overflow: hidden; }
   
-  /* --- ЛЕВАЯ ПАНЕЛЬ (ЛОГИН) --- */
   .login-panel { 
     width: 350px; padding: 30px; background: rgba(5, 8, 16, 0.7); 
     display: flex; flex-direction: column; justify-content: space-between; 
     border-right: 1px solid var(--glass-border); backdrop-filter: blur(20px);
-    overflow-y: auto; /* Включаем скролл, если окно маленькое */
+    overflow-y: auto;
   }
   
-  .login-top { 
-    display: flex; 
-    flex-direction: column; 
-    margin: auto 0; /* Идеально центрирует форму по вертикали */
-  }
+  .login-top { display: flex; flex-direction: column; margin: auto 0; }
   
   .logo { 
     font-family: var(--font-heading); font-size: 32px; font-weight: 700; 
@@ -125,7 +116,6 @@
   .login-footer a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
   .login-footer a:hover { color: var(--accent-light-blue); }
 
-  /* --- ПРАВАЯ ПАНЕЛЬ (ЛАУНЧЕР) --- */
   .main-panel { flex: 1; padding: 30px; display: flex; flex-direction: column; position: relative; overflow-y: auto; background: rgba(5, 8, 16, 0.4); backdrop-filter: blur(10px); }
   .news-title { font-family: var(--font-heading); font-size: 24px; font-weight: 700; margin-bottom: 20px; color: #fff; flex-shrink: 0; }
   .news-title span { color: var(--accent-light-blue); }
@@ -186,14 +176,12 @@
 </head>
 <body>
 
-  <!-- АНИМИРОВАННЫЙ ФОН -->
   <div class="aurora-bg">
     <div class="aurora-blob blob-1"></div>
     <div class="aurora-blob blob-2"></div>
     <div class="aurora-blob blob-3"></div>
   </div>
 
-  <!-- КАСТОМНЫЙ ХЕДЕР -->
   <div class="title-bar" id="title-bar">
     <div class="title-bar-text">Garmonia Launcher</div>
     <div class="window-controls">
@@ -202,11 +190,9 @@
     </div>
   </div>
 
-  <!-- ОСНОВНОЙ КОНТЕНТ -->
   <div class="content-wrapper">
     <div class="launcher-box">
       
-      <!-- ПАНЕЛЬ ВХОДА -->
       <div class="login-panel" id="login-panel">
         <div class="login-top">
           <div class="logo">GARMONIA</div>
@@ -223,7 +209,6 @@
         </div>
       </div>
 
-      <!-- ПАНЕЛЬ ИГРЫ -->
       <div class="main-panel" id="main-panel" style="display: none;">
         <div class="news-title">Привет, <span id="user-name"></span>!</div>
         
@@ -264,10 +249,11 @@
             <div class="progress-bar" id="progress-bar"></div>
           </div>
           
+          <!-- Кнопка обновления теперь динамическая -->
           <button class="btn btn-download" id="download-btn" onclick="downloadGame()">СКАЧАТЬ КЛИЕНТ</button>
           <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
           
-          <div class="status-text" id="status-text">Система готова к запуску</div>
+          <div class="status-text" id="status-text">Проверка обновлений...</div>
         </div>
       </div>
 
@@ -276,6 +262,7 @@
 
 <script>
 let myHwid = "UNKNOWN";
+let currentServerVersion = "0.0.0";
 
 window.addEventListener('DOMContentLoaded', () => {
   const savedPath = localStorage.getItem('garmonia_path');
@@ -315,19 +302,22 @@ if (window.chrome && window.chrome.webview) {
     }
     
     if (msg === "INSTALL_SUCCESS") {
+      // При успешной установке сохраняем версию
+      localStorage.setItem('garmonia_client_version', currentServerVersion);
+      
       document.getElementById('status-text').innerText = "Установка завершена!";
       document.getElementById('progress-bar').style.width = '100%';
       setTimeout(() => {
-        document.getElementById('download-btn').style.display = 'block';
+        document.getElementById('download-btn').style.display = 'none';
         document.getElementById('progress-container').style.display = 'none';
         document.getElementById('progress-bar').style.width = '0%';
+        checkClientVersion(); // Перепроверяем версию, чтобы показать кнопку ИГРАТЬ
       }, 2000);
     }
     
     if (msg === "INSTALL_ERROR") {
       document.getElementById('status-text').innerText = "Ошибка";
-      document.getElementById('download-btn').style.display = 'block';
-      document.getElementById('play-btn').style.display = 'block';
+      checkClientVersion();
       document.getElementById('progress-container').style.display = 'none';
       document.getElementById('progress-bar').style.width = '0%';
     }
@@ -352,6 +342,32 @@ if (window.chrome && window.chrome.webview) {
 function minimizeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("MINIMIZE"); }
 function closeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("CLOSE"); }
 function selectFolder() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("SELECT_FOLDER"); }
+
+// Проверка версии клиента
+async function checkClientVersion() {
+  try {
+    const res = await fetch('/api/client/version');
+    const data = await res.json();
+    currentServerVersion = data.version;
+    
+    const localVersion = localStorage.getItem('garmonia_client_version') || '0.0.0';
+    
+    if (localVersion !== currentServerVersion) {
+      document.getElementById('status-text').innerText = `Доступно обновление клиента (v${currentServerVersion})`;
+      document.getElementById('download-btn').style.display = 'block';
+      document.getElementById('download-btn').innerText = `ОБНОВИТЬ КЛИЕНТ (v${currentServerVersion})`;
+      document.getElementById('play-btn').style.display = 'none';
+    } else {
+      document.getElementById('status-text').innerText = "Система готова к запуску";
+      document.getElementById('download-btn').style.display = 'none';
+      document.getElementById('play-btn').style.display = 'block';
+    }
+  } catch (e) {
+    console.error('Ошибка проверки версии:', e);
+    document.getElementById('download-btn').style.display = 'block';
+    document.getElementById('play-btn').style.display = 'none';
+  }
+}
 
 async function login() {
   const u = document.getElementById('username').value.trim();
@@ -378,8 +394,8 @@ async function login() {
     document.getElementById('main-panel').style.display = 'flex';
     document.getElementById('user-name').innerText = u;
     
-    document.getElementById('download-btn').style.display = 'block';
-    document.getElementById('play-btn').style.display = 'block';
+    // После логина проверяем версию клиента
+    await checkClientVersion();
 
   } catch (e) {
     err.innerText = e.message; err.style.display = 'block';
@@ -411,7 +427,7 @@ async function downloadGame() {
   } catch (e) {
     status.innerText = 'Ошибка';
     alert(e.message);
-    document.getElementById('download-btn').style.display = 'block';
+    checkClientVersion();
     container.style.display = 'none';
   }
 }
