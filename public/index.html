@@ -9,33 +9,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Цветовая палитра (Blue Aurora) */
     --bg-base: #050810;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    
-    /* Синие акценты */
     --accent-light-blue: #38bdf8;
     --accent-blue: #3b82f6;
     --accent-cyan: #06b6d4;
-    
-    /* Стекло */
     --glass-bg: rgba(255, 255, 255, 0.03);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-hover: rgba(255, 255, 255, 0.06);
-    
-    /* Админка */
     --admin-bg: #090e17;
     --admin-sidebar: #0f172a;
     --admin-card: #1e293b;
     --admin-border: #334155;
     --admin-blue: #0ea5e9;
-    
     --font-body: 'Inter', sans-serif;
     --font-heading: 'Space Grotesk', sans-serif;
   }
 
-  /* === КАСТОМНЫЙ СКРОЛЛБАР === */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
   ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; transition: 0.2s; }
@@ -103,7 +94,6 @@
   .hero h1 span { background: linear-gradient(to right, var(--accent-light-blue), var(--accent-blue), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px; position: relative; z-index: 2; }
 
-  /* Функционал (2 карточки) */
   .func-section { padding: 60px 20px; max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 2; }
   .func-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; gap: 40px; }
   .func-subtitle { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--accent-light-blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
@@ -122,7 +112,6 @@
   .func-info h3 { font-family: var(--font-heading); font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #fff; }
   .func-info p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
 
-  /* Тарифы */
   .pricing-section { padding: 60px 20px 100px; max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 2; }
   .section-title { font-family: var(--font-heading); text-align: center; font-size: 36px; font-weight: 700; margin-bottom: 40px; letter-spacing: -0.02em; }
   .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -300,7 +289,6 @@
       </div>
     </section>
 
-    <!-- НОВАЯ СЕКЦИЯ: ФУНКЦИОНАЛ -->
     <section class="func-section">
       <div class="func-header">
         <div class="func-title-area">
@@ -540,13 +528,14 @@
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
             Промокоды
           </div>
+          <!-- ДВЕ НОВЫЕ ВКЛАДКИ -->
           <div class="admin-nav-item" data-tab="launcher" onclick="switchAdminTab('launcher')">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            Клиент / Лаунчер
+            Лаунчер
           </div>
-          <div class="admin-nav-item" data-tab="mods" onclick="switchAdminTab('mods')">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            Моды
+          <div class="admin-nav-item" data-tab="client" onclick="switchAdminTab('client')">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Клиент (.jar)
           </div>
         </nav>
         <div style="padding-top: 24px;">
@@ -627,11 +616,11 @@
           </div>
         </div>
 
-        <!-- Клиент / Лаунчер -->
+        <!-- Лаунчер (.exe) -->
         <div id="admin-view-launcher" class="admin-view" style="display: none;">
-          <h1 class="admin-header">Основной клиент (.jar / Лаунчер)</h1>
+          <h1 class="admin-header">Ссылка на лаунчер (.exe)</h1>
           <div class="admin-card">
-            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Вставьте прямую ссылку на ваш основной клиент или лаунчер. Эта ссылка будет использоваться для скачивания игроками.</p>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Вставьте прямую ссылку на ваш лаунчер (GarmoniaLauncher.exe).</p>
             <div class="admin-input-group">
               <input type="text" id="launcher-url" placeholder="https://..." style="flex: 1;">
               <button class="btn btn-primary" onclick="saveLauncherUrl()">Сохранить</button>
@@ -640,16 +629,16 @@
           </div>
         </div>
 
-        <!-- Моды -->
-        <div id="admin-view-mods" class="admin-view" style="display: none;">
-          <h1 class="admin-header">Управление модами</h1>
+        <!-- Клиент (.jar) -->
+        <div id="admin-view-client" class="admin-view" style="display: none;">
+          <h1 class="admin-header">Ссылка на клиент (.jar)</h1>
           <div class="admin-card">
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Вставьте прямую ссылку на сам мод/клиент (например, Garmonia.jar).</p>
             <div class="admin-input-group">
-              <input type="text" id="new-mod-url" placeholder="Ссылка на мод (.jar)" style="flex: 1;">
-              <button class="btn btn-primary" onclick="addMod()">Добавить</button>
+              <input type="text" id="client-url" placeholder="https://..." style="flex: 1;">
+              <button class="btn btn-primary" onclick="saveClientUrl()">Сохранить</button>
             </div>
-            <div id="mod-msg" class="msg"></div>
-            <div id="mods-list-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;"></div>
+            <div id="client-msg" class="msg"></div>
           </div>
         </div>
       </main>
@@ -840,8 +829,8 @@ function switchAdminTab(tab) {
   const targetView = document.getElementById('admin-view-' + tab);
   if (targetView) targetView.style.display = 'block';
 
-  if (tab === 'mods') loadMods();
   if (tab === 'launcher') loadLauncherUrl();
+  if (tab === 'client') loadClientUrl();
   if (tab === 'roles') renderRolesList();
 }
 
@@ -962,49 +951,35 @@ async function deletePromo(id) {
   try { await api('/admin/promos/' + id, { method: 'DELETE' }); await loadAdmin(); } catch (e) { alert(e.message); }
 }
 
+/* --- ЛАУНЧЕР И КЛИЕНТ --- */
 async function loadLauncherUrl() {
   try {
     const data = await api('/client/launcher_url');
-    document.getElementById('launcher-url').value = data.url;
+    document.getElementById('launcher-url').value = data.url || '';
   } catch (e) {}
 }
 async function saveLauncherUrl() {
   const msg = document.getElementById('launcher-msg'); hideMsg(msg);
   try {
     await api('/admin/settings/launcher_url', { method: 'POST', body: JSON.stringify({ url: document.getElementById('launcher-url').value.trim() }) });
-    showMsg(msg, 'Ссылка сохранена', 'ok');
+    showMsg(msg, 'Ссылка на лаунчер сохранена', 'ok');
   } catch (e) { showMsg(msg, e.message); }
 }
 
-async function loadMods() {
+async function loadClientUrl() {
   try {
-    const mods = await api('/admin/mods');
-    const container = document.getElementById('mods-list-container');
-    container.innerHTML = mods.length ? mods.map(mod => `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.2); padding:16px 20px; border-radius:8px; border:1px solid var(--admin-border);">
-        <span style="font-family:monospace; color:#ddd;">${mod.mod_name}</span>
-        <button class="mini-btn danger" onclick="deleteMod(${mod.id})">Удалить</button>
-      </div>
-    `).join('') : '<p style="color:#888;">Модов нет.</p>';
-  } catch (e) { showToast(e.message, true); }
+    // ВАЖНО: Здесь может быть твой другой endpoint, например /client/mod_url
+    // Если на бэкенде нет /admin/settings/client_url, нужно будет его добавить
+    const data = await api('/client/mod_url'); 
+    document.getElementById('client-url').value = data.url || '';
+  } catch (e) {}
 }
-async function addMod() {
-  const msg = document.getElementById('mod-msg'); hideMsg(msg);
-  const url = document.getElementById('new-mod-url').value.trim();
-  if (!url) { showMsg(msg, 'Введите ссылку', 'err'); return; }
-  let fileName = "mod.jar";
-  try { fileName = url.split('/').pop().split('?')[0]; } catch(e) {}
-  
+async function saveClientUrl() {
+  const msg = document.getElementById('client-msg'); hideMsg(msg);
   try {
-    await api('/admin/mods', { method: 'POST', body: JSON.stringify({ name: fileName, url }) });
-    showMsg(msg, 'Мод добавлен', 'ok');
-    document.getElementById('new-mod-url').value = '';
-    loadMods();
+    await api('/admin/settings/client_url', { method: 'POST', body: JSON.stringify({ url: document.getElementById('client-url').value.trim() }) });
+    showMsg(msg, 'Ссылка на клиент сохранена', 'ok');
   } catch (e) { showMsg(msg, e.message); }
-}
-async function deleteMod(id) {
-  if (!confirm('Удалить мод?')) return;
-  try { await api('/admin/mods/' + id, { method: 'DELETE' }); loadMods(); } catch (e) { alert(e.message); }
 }
 
 /* --- ПОКУПКА --- */
