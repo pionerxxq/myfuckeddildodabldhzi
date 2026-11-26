@@ -18,7 +18,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 const now = () => Date.now();
 const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// --- СКРЫТЫЙ МАРШРУТ ДЛЯ ЛАУНЧЕРА ---
 app.get('/launcher', (req, res) => {
   const userAgent = req.headers['user-agent'] || '';
   if (!userAgent.includes('GarmoniaLauncher')) {
@@ -57,7 +56,6 @@ function schema(dialect) {
     `CREATE TABLE IF NOT EXISTS client_mods (
       id ${auto}, mod_name ${vc(255)} NOT NULL, mod_url TEXT NOT NULL
     )${suf}`,
-    // НОВАЯ ТАБЛИЦА ДЛЯ ЛОГОВ
     `CREATE TABLE IF NOT EXISTS audit_logs (
       id ${auto}, user_id INT NULL, username ${vc(64)} NULL, action ${vc(255)} NOT NULL,
       details TEXT NULL, created_at ${big} NOT NULL
@@ -72,15 +70,15 @@ async function initDb() {
   try { await db.exec('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(255) NULL'); } catch(e) {}
   try { await db.exec('ALTER TABLE users ADD COLUMN hwid VARCHAR(64) NULL'); } catch(e) {}
 
-  // Дефолтные настройки
-  const modUrlExists = await db.get('SELECT value FROM settings WHERE key_name = ?', ['mod_url']);
-  if (!modUrlExists) {
-    await db.run('INSERT INTO settings (key_name, value) VALUES (?, ?)', ['mod_url', 'https://example.com/garmonia-mod.jar']);
-  }
-
-  const launcherUrlExists = await db.get('SELECT value FROM settings WHERE key_name = ?', ['launcher_url']);
-  if (!launcherUrlExists) {
-    await db.run('INSERT INTO settings (key_name, value) VALUES (?, ?)', ['launcher_url', 'https://example.com/launcher.exe']);
+  const defaultSettings = [
+    ['mod_url', 'https://example.com/garmonia-mod.jar'],
+    ['launcher_url', 'https://example.com/launcher.exe'],
+    ['client_version', '1.0.0'] // ДОБАВЛЕНО
+  ];
+  
+  for (const [key, val] of defaultSettings) {
+    const exists = await db.get('SELECT value FROM settings WHERE key_name = ?', [key]);
+    if (!exists) await db.run('INSERT INTO settings (key_name, value) VALUES (?, ?)', [key, val]);
   }
 
   const exists = await db.get('SELECT uid FROM users WHERE username_lower = ?', [ADMIN_USERNAME.toLowerCase()]);
@@ -131,19 +129,12 @@ function newKeyCode() {
   return 'GARM-' + hex.match(/.{1,4}/g).join('-');
 }
 
-// === ХЕЛПЕР ДЛЯ ЗАПИСИ ЛОГОВ ===
 async function addLog(userId, username, action, details) {
   try {
-    await db.run(
-      'INSERT INTO audit_logs (user_id, username, action, details, created_at) VALUES (?, ?, ?, ?, ?)',
-      [userId, username, action, details, now()]
-    );
-  } catch (e) {
-    console.error('Ошибка записи лога:', e);
-  }
+    await db.run('INSERT INTO audit_logs (user_id, username, action, details, created_at) VALUES (?, ?, ?, ?, ?)', [userId, username, action, details, now()]);
+  } catch (e) { console.error('Ошибка записи лога:', e); }
 }
 
-// --- API ДЛЯ САЙТА ---
 app.post('/api/register', wrap(async (req, res) => {
   const { username, password } = req.body || {};
   if (typeof username !== 'string' || typeof password !== 'string') return res.status(400).json({ error: 'Некорректные данные' });
@@ -216,17 +207,16 @@ app.post('/api/promo/validate', wrap(async (req, res) => {
   res.json({ code: promo.code, discount: promo.discount });
 }));
 
-// --- API ДЛЯ ЛАУНЧЕРА ---
 app.post('/api/client/auth', wrap(async (req, res) => {
   const { username, password, hwid } = req.body;
   const user = await db.get('SELECT * FROM users WHERE username_lower = ?', [username?.toLowerCase()]);
   
   if (!user || !bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'Неверный логин или пароль' });
   if (user.is_banned === 1) return res.status(403).json({ error: `Вы забанены. Причина: ${user.ban_reason || 'Не указана'}` });
-  if (Number(user.sub_expires_at) <= Date.now()) return res.status(403).json({ error: 'У вас нет активной подписки. Купите её на сайте.' });
+  if (Number(user.sub_expires_at) <= Date.now()) return res.status(403).json({ error: 'У вас нет активной подписки.' });
 
   if (user.hwid && user.hwid !== hwid) {
-    return res.status(403).json({ error: 'Аккаунт привязан к другому ПК. Сбросьте HWID в кабинете.' });
+    return res.status(403).json({ error: 'Аккаунт привязан к другому ПК. Сбросьте HWID.' });
   } else if (!user.hwid) {
     await db.run('UPDATE users SET hwid = ? WHERE uid = ?', [hwid, user.uid]);
   }
@@ -244,7 +234,12 @@ app.get('/api/client/launcher_url', wrap(async (req, res) => {
   res.json({ url: setting ? setting.value : '' });
 }));
 
-// --- API ДЛЯ АДМИНКИ ---
+// ДОБАВЛЕНО: Получение текущей версии клиента
+app.get('/api/client/version', wrap(async (req, res) => {
+  const setting = await db.get('SELECT value FROM settings WHERE key_name = ?', ['client_version']);
+  res.json({ version: setting ? setting.value : '1.0.0' });
+}));
+
 app.get('/api/admin/users', auth, adminOnly, wrap(async (req, res) => {
   res.json((await db.all('SELECT * FROM users ORDER BY uid ASC')).map(publicUser));
 }));
@@ -351,7 +346,6 @@ app.delete('/api/admin/promos/:id', auth, adminOnly, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Сохранение ссылок из админки
 app.post('/api/admin/settings/mod_url', auth, adminOnly, wrap(async (req, res) => {
   const { url } = req.body;
   await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'mod_url']);
@@ -366,7 +360,14 @@ app.post('/api/admin/settings/launcher_url', auth, adminOnly, wrap(async (req, r
   res.json({ ok: true });
 }));
 
-// --- API ДЛЯ ЛОГОВ ---
+// ДОБАВЛЕНО: Обновление версии клиента
+app.post('/api/admin/settings/client_version', auth, adminOnly, wrap(async (req, res) => {
+  const { version } = req.body;
+  await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [version, 'client_version']);
+  await addLog(req.user.uid, req.user.username, 'Обновление версии', `Изменил версию клиента на ${version}`);
+  res.json({ ok: true });
+}));
+
 app.get('/api/admin/logs', auth, adminOnly, wrap(async (req, res) => {
   const logs = await db.all('SELECT * FROM audit_logs ORDER BY id DESC LIMIT 100');
   res.json(logs.map(l => ({
