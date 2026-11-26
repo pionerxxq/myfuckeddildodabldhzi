@@ -56,6 +56,11 @@ function schema(dialect) {
     )${suf}`,
     `CREATE TABLE IF NOT EXISTS client_mods (
       id ${auto}, mod_name ${vc(255)} NOT NULL, mod_url TEXT NOT NULL
+    )${suf}`,
+    // НОВАЯ ТАБЛИЦА ДЛЯ ЛОГОВ
+    `CREATE TABLE IF NOT EXISTS audit_logs (
+      id ${auto}, user_id INT NULL, username ${vc(64)} NULL, action ${vc(255)} NOT NULL,
+      details TEXT NULL, created_at ${big} NOT NULL
     )${suf}`
   ];
 }
@@ -126,6 +131,18 @@ function newKeyCode() {
   return 'GARM-' + hex.match(/.{1,4}/g).join('-');
 }
 
+// === ХЕЛПЕР ДЛЯ ЗАПИСИ ЛОГОВ ===
+async function addLog(userId, username, action, details) {
+  try {
+    await db.run(
+      'INSERT INTO audit_logs (user_id, username, action, details, created_at) VALUES (?, ?, ?, ?, ?)',
+      [userId, username, action, details, now()]
+    );
+  } catch (e) {
+    console.error('Ошибка записи лога:', e);
+  }
+}
+
 // --- API ДЛЯ САЙТА ---
 app.post('/api/register', wrap(async (req, res) => {
   const { username, password } = req.body || {};
@@ -141,6 +158,7 @@ app.post('/api/register', wrap(async (req, res) => {
     [uname, lower, bcrypt.hashSync(password, 10), 'player', 0, 0, now(), 0]
   );
   const user = await db.get('SELECT * FROM users WHERE uid = ?', [r.lastInsertRowid]);
+  await addLog(user.uid, user.username, 'Регистрация', 'Создал аккаунт на сайте');
   res.json({ token: await createSession(user.uid), user: publicUser(user) });
 }));
 
@@ -166,6 +184,7 @@ app.post('/api/hwid/reset', auth, wrap(async (req, res) => {
   if (req.user.hwid_resets > 0) {
     await db.run('UPDATE users SET hwid = NULL, hwid_resets = hwid_resets - 1 WHERE uid = ?', [req.user.uid]);
     const updated = await db.get('SELECT * FROM users WHERE uid = ?', [req.user.uid]);
+    await addLog(req.user.uid, req.user.username, 'Сброс HWID', 'Самостоятельный сброс HWID');
     res.json({ ok: true, user: publicUser(updated) });
   } else {
     res.status(400).json({ error: 'У вас нет доступных сбросов HWID' });
@@ -184,6 +203,8 @@ app.post('/api/redeem', auth, wrap(async (req, res) => {
   const newExp = Math.max(now(), Number(req.user.sub_expires_at) || 0) + Number(row.days) * DAY;
   await db.run('UPDATE users SET sub_expires_at = ? WHERE uid = ?', [newExp, req.user.uid]);
   await db.run('DELETE FROM sub_keys WHERE id = ?', [row.id]);
+  
+  await addLog(req.user.uid, req.user.username, 'Активация ключа', `Активировал ключ ${key} (+${row.days} дн.)`);
   res.json({ user: publicUser(await db.get('SELECT * FROM users WHERE uid = ?', [req.user.uid])), addedDays: Number(row.days) });
 }));
 
@@ -223,10 +244,6 @@ app.get('/api/client/launcher_url', wrap(async (req, res) => {
   res.json({ url: setting ? setting.value : '' });
 }));
 
-app.get('/api/client/mods', wrap(async (req, res) => {
-  res.json(await db.all('SELECT * FROM client_mods ORDER BY id ASC'));
-}));
-
 // --- API ДЛЯ АДМИНКИ ---
 app.get('/api/admin/users', auth, adminOnly, wrap(async (req, res) => {
   res.json((await db.all('SELECT * FROM users ORDER BY uid ASC')).map(publicUser));
@@ -239,12 +256,16 @@ app.post('/api/admin/users/:uid/sub', auth, adminOnly, wrap(async (req, res) => 
   if (!user) return res.status(404).json({ error: 'Не найден' });
   const newExp = days === 0 ? 0 : Math.max(now(), Number(user.sub_expires_at) || 0) + days * DAY;
   await db.run('UPDATE users SET sub_expires_at = ? WHERE uid = ?', [newExp, uid]);
+  
+  await addLog(req.user.uid, req.user.username, 'Выдача подписки', `Выдал подписку на ${days} дн. пользователю ${user.username}`);
   res.json({ user: publicUser(await db.get('SELECT * FROM users WHERE uid = ?', [uid])) });
 }));
 
 app.post('/api/admin/users/:uid/hwid', auth, adminOnly, wrap(async (req, res) => {
   const uid = parseInt(req.params.uid, 10);
   await db.run('UPDATE users SET hwid_resets = hwid_resets + 1 WHERE uid = ?', [uid]);
+  const target = await db.get('SELECT username FROM users WHERE uid = ?', [uid]);
+  await addLog(req.user.uid, req.user.username, 'Выдача HWID', `Выдал +1 сброс HWID пользователю ${target?.username || uid}`);
   res.json({ ok: true });
 }));
 
@@ -253,6 +274,8 @@ app.post('/api/admin/users/:uid/role', auth, adminOnly, wrap(async (req, res) =>
   if (!['player', 'user', 'media', 'owner', 'admin'].includes(role)) return res.status(400).json({ error: 'Некорректная роль' });
   if (uid === req.user.uid && role !== 'owner') return res.status(400).json({ error: 'Нельзя понизить себя' });
   await db.run('UPDATE users SET role = ? WHERE uid = ?', [role, uid]);
+  const target = await db.get('SELECT username FROM users WHERE uid = ?', [uid]);
+  await addLog(req.user.uid, req.user.username, 'Смена роли', `Выдал роль ${role} пользователю ${target?.username || uid}`);
   res.json({ ok: true });
 }));
 
@@ -261,7 +284,14 @@ app.post('/api/admin/users/:uid/ban', auth, adminOnly, wrap(async (req, res) => 
   const { ban, reason } = req.body;
   if (uid === req.user.uid) return res.status(400).json({ error: 'Нельзя забанить себя' });
   await db.run('UPDATE users SET is_banned = ?, ban_reason = ? WHERE uid = ?', [ban ? 1 : 0, reason || null, uid]);
-  if (ban) await db.run('DELETE FROM sessions WHERE uid = ?', [uid]);
+  const target = await db.get('SELECT username FROM users WHERE uid = ?', [uid]);
+  
+  if (ban) {
+    await db.run('DELETE FROM sessions WHERE uid = ?', [uid]);
+    await addLog(req.user.uid, req.user.username, 'Бан', `Забанил ${target?.username || uid}. Причина: ${reason || 'Не указана'}`);
+  } else {
+    await addLog(req.user.uid, req.user.username, 'Разбан', `Разбанил ${target?.username || uid}`);
+  }
   res.json({ ok: true });
 }));
 
@@ -272,6 +302,7 @@ app.delete('/api/admin/users/:uid', auth, adminOnly, wrap(async (req, res) => {
   if (u.role === 'owner') return res.status(400).json({ error: 'Нельзя удалить владельца' });
   await db.run('DELETE FROM sessions WHERE uid = ?', [uid]);
   await db.run('DELETE FROM users WHERE uid = ?', [uid]);
+  await addLog(req.user.uid, req.user.username, 'Удаление юзера', `Удалил пользователя ${u.username}`);
   res.json({ ok: true });
 }));
 
@@ -289,6 +320,7 @@ app.post('/api/admin/keys', auth, adminOnly, wrap(async (req, res) => {
     await db.run('INSERT INTO sub_keys (key_code, days, created_by, created_at) VALUES (?,?,?,?)', [code, days, req.user.uid, now()]);
     created.push(code);
   }
+  await addLog(req.user.uid, req.user.username, 'Генерация ключей', `Создал ${count} ключей на ${days} дн.`);
   res.json({ keys: created });
 }));
 
@@ -309,6 +341,7 @@ app.post('/api/admin/promos', auth, adminOnly, wrap(async (req, res) => {
   if (discount < 1 || discount > 99) return res.status(400).json({ error: 'Скидка от 1 до 99%' });
   try {
     await db.run('INSERT INTO promos (code, discount, max_uses) VALUES (?,?,?)', [code, discount, max_uses]);
+    await addLog(req.user.uid, req.user.username, 'Создание промокода', `Создал промокод ${code} (-${discount}%)`);
     res.json({ ok: true });
   } catch(e) { res.status(400).json({ error: 'Промокод уже существует' }); }
 }));
@@ -322,33 +355,29 @@ app.delete('/api/admin/promos/:id', auth, adminOnly, wrap(async (req, res) => {
 app.post('/api/admin/settings/mod_url', auth, adminOnly, wrap(async (req, res) => {
   const { url } = req.body;
   await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'mod_url']);
+  await addLog(req.user.uid, req.user.username, 'Обновление ссылки', 'Обновил ссылку на клиент (.jar)');
   res.json({ ok: true });
 }));
 
 app.post('/api/admin/settings/launcher_url', auth, adminOnly, wrap(async (req, res) => {
   const { url } = req.body;
   await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [url, 'launcher_url']);
+  await addLog(req.user.uid, req.user.username, 'Обновление ссылки', 'Обновил ссылку на лаунчер (.exe)');
   res.json({ ok: true });
 }));
 
-// API для модов
-app.get('/api/admin/mods', auth, adminOnly, wrap(async (req, res) => {
-  res.json(await db.all('SELECT * FROM client_mods ORDER BY id DESC'));
-}));
-
-app.post('/api/admin/mods', auth, adminOnly, wrap(async (req, res) => {
-  const { name, url } = req.body;
-  if (!url) return res.status(400).json({ error: 'Ссылка пустая' });
-  await db.run('INSERT INTO client_mods (mod_name, mod_url) VALUES (?, ?)', [name || 'mod.jar', url]);
-  res.json({ ok: true });
-}));
-
-app.delete('/api/admin/mods/:id', auth, adminOnly, wrap(async (req, res) => {
-  await db.run('DELETE FROM client_mods WHERE id = ?', [parseInt(req.params.id, 10)]);
-  res.json({ ok: true });
+// --- API ДЛЯ ЛОГОВ ---
+app.get('/api/admin/logs', auth, adminOnly, wrap(async (req, res) => {
+  const logs = await db.all('SELECT * FROM audit_logs ORDER BY id DESC LIMIT 100');
+  res.json(logs.map(l => ({
+    date: new Date(Number(l.created_at)).toLocaleString('ru-RU'),
+    user: l.username,
+    action: l.action,
+    details: l.details
+  })));
 }));
 
 app.use((err, req, res, next) => { console.error(err); res.status(500).json({ error: 'Ошибка сервера' }); });
 
-initDb().then(() => app.listen(PORT, () => console.log(`✅ Сайт запущен`)))
+initDb().then(() => app.listen(PORT, () => console.log(`✅ Сайт запущен на порту ${PORT}`)))
   .catch(e => { console.error('Ошибка БД:', e); process.exit(1); });
