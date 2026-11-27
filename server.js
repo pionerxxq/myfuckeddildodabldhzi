@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin12345';
 const DAY = 24 * 60 * 60 * 1000;
-const ALLOWED_DAYS = [7, 30, 90, 180, 365, 9999];
 
 const app = express();
 app.use(express.json({ limit: '100kb' }));
@@ -207,7 +206,6 @@ app.post('/api/promo/validate', wrap(async (req, res) => {
   res.json({ code: promo.code, discount: promo.discount });
 }));
 
-// API для лаунчера (возвращает UID)
 app.post('/api/client/auth', wrap(async (req, res) => {
   const { username, password, hwid } = req.body;
   const user = await db.get('SELECT * FROM users WHERE username_lower = ?', [username?.toLowerCase()]);
@@ -307,7 +305,8 @@ app.get('/api/admin/keys', auth, adminOnly, wrap(async (req, res) => {
 
 app.post('/api/admin/keys', auth, adminOnly, wrap(async (req, res) => {
   const days = parseInt(req.body?.days, 10), count = Math.min(Math.max(parseInt(req.body?.count, 10) || 1, 1), 50);
-  if (!ALLOWED_DAYS.includes(days)) return res.status(400).json({ error: 'Недопустимый срок' });
+  if (!Number.isFinite(days) || days < 1 || days > 99999) return res.status(400).json({ error: 'Срок от 1 до 99999 дней' });
+  
   const created = [];
   for (let i = 0; i < count; i++) {
     let code, taken = true;
