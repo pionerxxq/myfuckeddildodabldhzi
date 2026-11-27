@@ -249,7 +249,6 @@
             <div class="progress-bar" id="progress-bar"></div>
           </div>
           
-          <!-- Кнопка обновления теперь динамическая -->
           <button class="btn btn-download" id="download-btn" onclick="downloadGame()">СКАЧАТЬ КЛИЕНТ</button>
           <button class="btn btn-play" id="play-btn" onclick="playGame()">ИГРАТЬ</button>
           
@@ -263,6 +262,8 @@
 <script>
 let myHwid = "UNKNOWN";
 let currentServerVersion = "0.0.0";
+// Сюда сохраняем настоящий UID с сервера
+window.currentUid = "0";
 
 window.addEventListener('DOMContentLoaded', () => {
   const savedPath = localStorage.getItem('garmonia_path');
@@ -302,7 +303,6 @@ if (window.chrome && window.chrome.webview) {
     }
     
     if (msg === "INSTALL_SUCCESS") {
-      // При успешной установке сохраняем версию
       localStorage.setItem('garmonia_client_version', currentServerVersion);
       
       document.getElementById('status-text').innerText = "Установка завершена!";
@@ -311,7 +311,7 @@ if (window.chrome && window.chrome.webview) {
         document.getElementById('download-btn').style.display = 'none';
         document.getElementById('progress-container').style.display = 'none';
         document.getElementById('progress-bar').style.width = '0%';
-        checkClientVersion(); // Перепроверяем версию, чтобы показать кнопку ИГРАТЬ
+        checkClientVersion();
       }, 2000);
     }
     
@@ -343,7 +343,6 @@ function minimizeApp() { if (window.chrome && window.chrome.webview) window.chro
 function closeApp() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("CLOSE"); }
 function selectFolder() { if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage("SELECT_FOLDER"); }
 
-// Проверка версии клиента
 async function checkClientVersion() {
   try {
     const res = await fetch('/api/client/version');
@@ -390,11 +389,13 @@ async function login() {
 
     if (!res.ok) throw new Error(data.error);
 
+    // СОХРАНЯЕМ НАСТОЯЩИЙ UID
+    window.currentUid = data.uid;
+
     document.getElementById('login-panel').style.display = 'none';
     document.getElementById('main-panel').style.display = 'flex';
     document.getElementById('user-name').innerText = u;
     
-    // После логина проверяем версию клиента
     await checkClientVersion();
 
   } catch (e) {
@@ -440,6 +441,8 @@ function playGame() {
   const selectedRam = document.getElementById('ram-select').value;
   const installPath = document.getElementById('install-path').value;
   const playerName = document.getElementById('user-name').innerText;
+  // БЕРЕМ НАСТОЯЩИЙ UID
+  const uid = window.currentUid;
 
   btn.style.display = 'none';
   container.style.display = 'block';
@@ -447,7 +450,8 @@ function playGame() {
   status.innerText = 'Запуск клиента...';
   
   if (window.chrome && window.chrome.webview) {
-    window.chrome.webview.postMessage(`START_MINECRAFT|1.21.11 Fabric|${selectedRam}|${installPath}|${playerName}`);
+    // ОТПРАВЛЯЕМ UID В C#
+    window.chrome.webview.postMessage(`START_MINECRAFT|1.21.11 Fabric|${selectedRam}|${installPath}|${playerName}|${uid}`);
   } else {
     alert("Играть можно только через GarmoniaLauncher.exe!");
   }
