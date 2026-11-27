@@ -11,7 +11,9 @@
   @font-face {
     font-family: 'Phonk Sans';
     src: url('./fonts/PhonkSans-SemiBold.otf') format('opentype');
-    font-weight: 600; font-style: normal; font-display: swap;
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
   }
 
   :root {
@@ -658,15 +660,9 @@
           <h1 class="admin-header">Генерация ключей</h1>
           <div class="admin-card">
             <div class="admin-input-group">
-              <select id="key-days">
-                <option value="7">7 дней</option>
-                <option value="30" selected>30 дней</option>
-                <option value="90">90 дней</option>
-                <option value="180">180 дней</option>
-                <option value="365">365 дней</option>
-                <option value="9999">Lifetime</option>
-              </select>
-              <input type="number" id="key-count" value="1" min="1" max="50" placeholder="Количество">
+              <!-- ЗАМЕНИЛИ SELECT НА INPUT ДЛЯ ЛЮБЫХ ДНЕЙ -->
+              <input type="number" id="key-days" value="30" min="1" max="99999" placeholder="Дней" style="width: 140px;">
+              <input type="number" id="key-count" value="1" min="1" max="50" placeholder="Количество" style="width: 140px;">
               <button class="btn btn-primary" onclick="generateKeys()">Создать</button>
             </div>
             <div id="key-msg" class="msg"></div>
