@@ -73,7 +73,7 @@ async function initDb() {
   const defaultSettings = [
     ['mod_url', 'https://example.com/garmonia-mod.jar'],
     ['launcher_url', 'https://example.com/launcher.exe'],
-    ['client_version', '1.0.0'] // ДОБАВЛЕНО
+    ['client_version', '1.0.0']
   ];
   
   for (const [key, val] of defaultSettings) {
@@ -207,6 +207,7 @@ app.post('/api/promo/validate', wrap(async (req, res) => {
   res.json({ code: promo.code, discount: promo.discount });
 }));
 
+// API для лаунчера (возвращает UID)
 app.post('/api/client/auth', wrap(async (req, res) => {
   const { username, password, hwid } = req.body;
   const user = await db.get('SELECT * FROM users WHERE username_lower = ?', [username?.toLowerCase()]);
@@ -221,7 +222,7 @@ app.post('/api/client/auth', wrap(async (req, res) => {
     await db.run('UPDATE users SET hwid = ? WHERE uid = ?', [hwid, user.uid]);
   }
 
-  res.json({ success: true, uid: user.uid, role: user.role });
+  res.json({ success: true, uid: user.uid, role: user.role, username: user.username });
 }));
 
 app.get('/api/client/mod_url', wrap(async (req, res) => {
@@ -234,7 +235,6 @@ app.get('/api/client/launcher_url', wrap(async (req, res) => {
   res.json({ url: setting ? setting.value : '' });
 }));
 
-// ДОБАВЛЕНО: Получение текущей версии клиента
 app.get('/api/client/version', wrap(async (req, res) => {
   const setting = await db.get('SELECT value FROM settings WHERE key_name = ?', ['client_version']);
   res.json({ version: setting ? setting.value : '1.0.0' });
@@ -360,7 +360,6 @@ app.post('/api/admin/settings/launcher_url', auth, adminOnly, wrap(async (req, r
   res.json({ ok: true });
 }));
 
-// ДОБАВЛЕНО: Обновление версии клиента
 app.post('/api/admin/settings/client_version', auth, adminOnly, wrap(async (req, res) => {
   const { version } = req.body;
   await db.run('UPDATE settings SET value = ? WHERE key_name = ?', [version, 'client_version']);
